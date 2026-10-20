@@ -1,0 +1,45 @@
+Công nghệ cần dùng
+Bắt buộc theo SRS
+
+Frontend
+
+ReactJS, build bằng Vite
+Tailwind CSS cho giao diện responsive
+Zustand để quản lý state, giỏ hàng lưu thêm vào LocalStorage
+
+Backend
+
+Java + Spring Boot
+Gradle để build (OpenJDK)
+MySQL làm database
+BCrypt để mã hóa mật khẩu
+JWT để xác thực và phân quyền (CUSTOMER, ADMIN), có thời gian hết hạn
+CORS cấu hình chỉ cho phép origin của frontend
+Logback/SLF4J để ghi log exception
+Spring AI + Chat Model cho AI chatbot và sinh mô tả sản phẩm
+
+DevOps
+
+Docker, gồm 3 Dockerfile cho MySQL, Backend, Frontend (Frontend build 2 giai đoạn: Node rồi Nginx)
+Docker Compose để chạy cả hệ thống
+GitHub Actions cho CI/CD: build, test, đẩy image lên Registry
+Git với 2 nhánh main và dev
+Gợi ý thêm (SRS không ghi rõ, nhưng thực tế sẽ cần)
+
+Đây là gợi ý của mình, bạn có thể chọn cái khác.
+
+Backend:
+Spring Security (làm JWT và phân quyền)
+Spring Data JPA/Hibernate (làm việc với MySQL)
+Spring Validation
+Lombok (giảm code lặp)
+Swagger/OpenAPI (tài liệu API, tiện cho FE gọi và cho QA test)
+Frontend: Axios và React Router.
+Test (cho 40 điểm phi chức năng):
+JUnit + Mockito cho backend
+Postman cho test API
+k6 hoặc JMeter để chứng minh chịu được 50 request đồng thời
+Lighthouse để đo FCP dưới 2 giây
+Vitest hoặc Playwright cho frontend/E2E, nếu kịp
+Registry: Docker Hub hoặc GitHub Container Registry (GHCR). GHCR tiện hơn vì cùng hệ sinh thái với GitHub Actions.
+AI model: Spring AI hỗ trợ nhiều nhà cung cấp (OpenAI, Anthropic, Gemini, Ollama...). Nên chọn sớm một cái có free tier hoặc có API key sẵn.
