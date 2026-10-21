@@ -7,6 +7,11 @@ const router_wareflow = createBrowserRouter([
         index: true,
         element: <LandingPage />,
     },
+
+    {
+        path: "/link của mỗi ng",
+        element: <NotFound />,// trang mình code
+    },
     {
         path: "*",
         element: <NotFound />,
