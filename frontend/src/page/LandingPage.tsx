@@ -1,4 +1,3 @@
-import React from "react";
 import "./landingPage.css";
 const LandingPage = () => {
     return (
