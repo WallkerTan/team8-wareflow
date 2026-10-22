@@ -352,18 +352,76 @@ docker compose up -d db          # chỉ chạy MySQL
 
 Lúc này backend chạy local sẽ kết nối vào MySQL qua `localhost:3307`.
 
+### Profile `local` (khuyến nghị)
+
+Repo có sẵn `backend/src/main/resources/application-local.properties` với các giá trị mặc định cho môi trường local:
+
+| Setting | Mặc định (profile `local`) |
+|---|---|
+| `spring.datasource.url` | `jdbc:mysql://localhost:3307/wareflow` (MySQL trong Docker) |
+| `app.cors.allowed-origins` | `http://localhost:5173`, `http://127.0.0.1:5173`, `http://localhost:4173` |
+
+Chạy backend với profile này:
+
+```bash
+# macOS / Linux
+./gradlew bootRun --args='--spring.profiles.active=local'
+
+# Windows
+.\gradlew.bat bootRun --args='--spring.profiles.active=local'
+```
+
+Trong IntelliJ IDEA: **Run → Edit Configurations → + → Spring Boot** →
+
+- Main class: `com.example.backend.BackendApplication`
+- Active profiles: `local`
+- (nếu `JAVA_HOME` trỏ tới JDK 21 không tồn tại, sửa SDK trong **Project Structure → Project SDK**)
+
+> **Lưu ý:** nếu bạn đã cài MySQL local ở cổng 3306 và muốn dùng nó, đừng bật profile `local` — hãy để `application.properties` mặc định (đang trỏ `localhost:3306`) hoặc override qua biến môi trường `DB_URL`.
+
+### Xung đột cổng khi chạy Docker + dev mode cùng lúc
+
+Nếu bạn vừa `docker compose up -d` vừa chạy backend bằng Gradle/IntelliJ, sẽ gặp:
+
+```
+Web server failed to start. Port 8081 was already in use.
+```
+
+**Nguyên nhân:** container `wareflow-backend` publish cổng `8081` ra host, nên tiến trình local không bind được.
+
+Cách xử lý — dừng container backend/frontend, giữ lại MySQL:
+
+```bash
+docker compose stop backend frontend
+docker compose ps          # chỉ còn wareflow-db
+```
+
+Hoặc đổi cổng publish của container trong `docker-compose.yml`:
+
+```yaml
+ports:
+  - "8082:8081"    # container vẫn chạy ở 8081 bên trong
+```
+
+Sau khi dừng container, kiểm tra cổng đã free:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8081 -State Listen
+```
+
 ---
 
 ## 11. Workflow Git sau khi thêm Docker
 
-Các file Docker hiện đang là **untracked** trong git. Để commit chúng:
+Các file Docker đã được commit. Nếu bạn thay đổi thêm:
 
 ```bash
 git add docker-compose.yml \
         backend/Dockerfile backend/.dockerignore \
-        frontend/Dockerfile frontend/.dockerignore frontend/nginx.conf
+        frontend/Dockerfile frontend/.dockerignore frontend/nginx.conf \
+        backend/src/main/resources/application-local.properties
 
-git commit -m "feat: add Docker setup with multi-stage build and healthchecks"
+git commit -m "chore: update Docker setup"
 git push origin <ten-branch>
 ```
 
