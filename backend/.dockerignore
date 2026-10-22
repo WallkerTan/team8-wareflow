@@ -1,0 +1,10 @@
+.git
+.gitignore
+build/
+.gradle/
+*.log
+_apitest.ps1
+_newtest.ps1
+_*.ps1
+Dockerfile
+.dockerignore

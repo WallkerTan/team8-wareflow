@@ -1,0 +1,19 @@
+# ===== Secrets =====
+# File .env chứa mật khẩu DB / JWT secret - KHÔNG BAO GIỜ commit.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Build =====
+*.log
