@@ -1,0 +1,1 @@
+.stats-chart-bars i,.stats-chart-bars b{transition:height .32s cubic-bezier(.2,.7,.25,1)}.stats-chart-bars>span{min-width:0}.stats-chart-bars>span:hover i,.stats-chart-bars>span:hover b{filter:brightness(.91)}.stats-chart-bars>span[title]{cursor:crosshair}

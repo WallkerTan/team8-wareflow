@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import NotFound from "../page/NotFound";
 import LandingPage from "../page/LandingPage";
+import UserLayout from "../layout/UserLayout";
 
 const router_wareflow = createBrowserRouter([
     {
@@ -11,6 +12,10 @@ const router_wareflow = createBrowserRouter([
     {
         path: "/link của mỗi ng",
         element: <NotFound />,// trang mình code
+    },
+    {
+        path: "/warehouse",
+        element: <UserLayout />,
     },
     {
         path: "*",
