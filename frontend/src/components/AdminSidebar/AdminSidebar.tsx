@@ -25,9 +25,9 @@ export default function AdminSidebar() {
     return (
         <aside className="sidebar">
             <Link className="logo" to="/admin" title="Wareflow Admin">
-                <span>W</span>
-                <strong>
-                    ware<span>flow</span>
+                <span>WF</span>
+                <strong className="flex">
+                    ware<div className="text-blue-500">flow</div>
                 </strong>
                 <small>ADMIN</small>
             </Link>

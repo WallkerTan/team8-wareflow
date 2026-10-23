@@ -50,9 +50,10 @@ export default function LoginForm() {
     return (
         <div className="auth-card">
             <Link className="auth-logo logo" to="/">
-                <span>W</span>
+                <div className="text-white bg-blue-500 rounded-[10px] p-2">W</div>
                 <strong>
-                    ware<span>flow</span>
+                    ware
+                    <div className="text-blue-500">flow</div>
                 </strong>
             </Link>
             <div className="auth-copy">
@@ -62,36 +63,56 @@ export default function LoginForm() {
             </div>
 
             {/* Quick Login Test Accounts */}
-            <div className="mb-4 p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-xs space-y-2">
-                <div className="text-slate-400 font-medium">Tài khoản test nhanh:</div>
+            <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">
+                <div className="text-slate-700 font-semibold">
+                    Tài khoản test nhanh:
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
-                        onClick={() => handleQuickFill("admin@wareflow.com", "Admin@123")}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition text-left cursor-pointer"
+                        onClick={() =>
+                            handleQuickFill("admin@wareflow.com", "Admin@123")
+                        }
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 hover:border-slate-400 transition text-left cursor-pointer shadow-sm"
                     >
-                        <ShieldCheck size={14} className="shrink-0 text-indigo-400" />
+                        <ShieldCheck
+                            size={16}
+                            className="shrink-0 text-slate-800"
+                        />
                         <div>
-                            <div className="font-semibold">Admin</div>
-                            <div className="text-[10px] text-slate-400">admin@wareflow.com</div>
+                            <div className="font-semibold text-slate-900">
+                                Admin
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                                admin@wareflow.com
+                            </div>
                         </div>
                     </button>
                     <button
                         type="button"
-                        onClick={() => handleQuickFill("owner@wareflow.com", "Owner@123")}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition text-left cursor-pointer"
+                        onClick={() =>
+                            handleQuickFill("owner@wareflow.com", "Owner@123")
+                        }
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 hover:border-slate-400 transition text-left cursor-pointer shadow-sm"
                     >
-                        <UserCheck size={14} className="shrink-0 text-emerald-400" />
+                        <UserCheck
+                            size={16}
+                            className="shrink-0 text-slate-800"
+                        />
                         <div>
-                            <div className="font-semibold">Chủ kho</div>
-                            <div className="text-[10px] text-slate-400">owner@wareflow.com</div>
+                            <div className="font-semibold text-slate-900">
+                                Chủ kho
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                                owner@wareflow.com
+                            </div>
                         </div>
                     </button>
                 </div>
             </div>
 
             {errorMessage && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 text-xs flex items-start gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2">
                     <span className="font-bold shrink-0">Lỗi:</span>
                     <span>{errorMessage}</span>
                 </div>
@@ -132,9 +153,7 @@ export default function LoginForm() {
                     <label className="check">
                         <input type="checkbox" defaultChecked /> Ghi nhớ phiên
                     </label>
-                    <Link to="/auth/forgot" className="text-slate-400 hover:text-slate-200">
-                        Quên mật khẩu?
-                    </Link>
+                    <Link to="/auth/forgot">Quên mật khẩu?</Link>
                 </div>
 
                 <button
@@ -144,7 +163,10 @@ export default function LoginForm() {
                 >
                     {loading ? (
                         <>
-                            <Loader2 size={16} className="animate-spin" />
+                            <Loader2
+                                size={16}
+                                className="animate-spin text-slate-800"
+                            />
                             <span>Đang xác thực...</span>
                         </>
                     ) : (
@@ -154,7 +176,8 @@ export default function LoginForm() {
             </form>
 
             <p className="auth-foot">
-                Chưa có tài khoản? <span className="text-slate-400">Liên hệ Quản trị viên để được cấp quyền.</span>
+                Chưa có tài khoản?{" "}
+                <Link to="/auth/register">Đăng ký tài khoản mới</Link>
             </p>
         </div>
     );

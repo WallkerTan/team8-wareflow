@@ -172,12 +172,12 @@ export default function AdminUsersPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Users className="text-emerald-400" size={26} /> Quản lý Người dùng
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <Users className="text-blue-600" size={26} /> Quản lý Người dùng
                     </h1>
-                    <p className="text-slate-400 text-sm mt-1">
+                    <p className="text-slate-500 text-sm mt-1">
                         Quản trị danh sách tài khoản, phân vai trò và điều phối trạng thái hoạt động.
                     </p>
                 </div>
@@ -185,14 +185,14 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => loadUsers()}
                         disabled={loading}
-                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 transition cursor-pointer"
+                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium border border-slate-200 shadow-sm transition cursor-pointer"
                     >
-                        <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+                        <RefreshCw size={15} className={loading ? "animate-spin text-blue-600" : "text-slate-500"} />
                         Làm mới
                     </button>
                     <button
                         onClick={() => setIsCreateOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition shadow-lg shadow-emerald-950 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-sm shadow-blue-500/20 cursor-pointer"
                     >
                         <UserPlus size={16} /> Thêm người dùng
                     </button>
@@ -200,7 +200,7 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-lg">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-sm">
                 <form onSubmit={handleSearch} className="flex-1 flex items-center gap-2">
                     <div className="relative flex-1">
                         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -209,12 +209,12 @@ export default function AdminUsersPage() {
                             placeholder="Tìm kiếm theo họ tên hoặc email..."
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-emerald-500 transition"
+                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium transition cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition cursor-pointer shadow-sm"
                     >
                         Tìm
                     </button>
@@ -224,7 +224,7 @@ export default function AdminUsersPage() {
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value as Role | "ALL")}
-                        className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
                     >
                         <option value="ALL">Tất cả vai trò</option>
                         <option value="ADMIN">ADMIN</option>
@@ -234,7 +234,7 @@ export default function AdminUsersPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as UserStatus | "ALL")}
-                        className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
                     >
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="ACTIVE">Hoạt động (ACTIVE)</option>
@@ -244,11 +244,11 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
-                            <tr className="border-b border-slate-700/80 bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 text-xs uppercase tracking-wider font-semibold">
                                 <th className="py-3.5 px-4 font-semibold">Người dùng</th>
                                 <th className="py-3.5 px-4 font-semibold">Vai trò</th>
                                 <th className="py-3.5 px-4 font-semibold">Liên hệ</th>
@@ -257,34 +257,34 @@ export default function AdminUsersPage() {
                                 <th className="py-3.5 px-4 font-semibold text-right">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700/50">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="py-12 text-center text-slate-400">
+                                    <td colSpan={6} className="py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center justify-center gap-2">
-                                            <Loader2 size={24} className="animate-spin text-emerald-400" />
+                                            <Loader2 size={24} className="animate-spin text-blue-600" />
                                             <span>Đang tải danh sách người dùng...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-12 text-center text-slate-400">
-                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-500" />
+                                    <td colSpan={6} className="py-12 text-center text-slate-500">
+                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-400" />
                                         <span>Không có người dùng nào phù hợp với bộ lọc.</span>
                                     </td>
                                 </tr>
                             ) : (
                                 users.map((u) => (
-                                    <tr key={u.id} className="hover:bg-slate-700/30 transition">
+                                    <tr key={u.id} className="hover:bg-slate-50 transition">
                                         <td className="py-3.5 px-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-slate-700 text-emerald-400 font-bold flex items-center justify-center text-sm border border-slate-600">
+                                                <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-sm border border-blue-200">
                                                     {u.fullName ? u.fullName.charAt(0).toUpperCase() : "U"}
                                                 </div>
                                                 <div>
-                                                    <div className="font-semibold text-white">{u.fullName}</div>
-                                                    <div className="text-xs text-slate-400">{u.email}</div>
+                                                    <div className="font-semibold text-slate-900">{u.fullName}</div>
+                                                    <div className="text-xs text-slate-500">{u.email}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -292,17 +292,17 @@ export default function AdminUsersPage() {
                                             <span
                                                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                                                     u.role === "ADMIN"
-                                                        ? "bg-indigo-500/15 text-indigo-300 border border-indigo-500/30"
-                                                        : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                                                        ? "bg-purple-50 text-purple-700 border border-purple-200"
+                                                        : "bg-blue-50 text-blue-700 border border-blue-200"
                                                 }`}
                                             >
                                                 <Shield size={12} />
                                                 {u.role}
                                             </span>
                                         </td>
-                                        <td className="py-3.5 px-4 text-xs text-slate-300">
-                                            <div>{u.phone || "-"}</div>
-                                            <div className="text-slate-400 truncate max-w-[150px]">{u.address || "-"}</div>
+                                        <td className="py-3.5 px-4 text-xs text-slate-600">
+                                            <div className="text-slate-900 font-medium">{u.phone || "-"}</div>
+                                            <div className="text-slate-500 truncate max-w-[150px]">{u.address || "-"}</div>
                                         </td>
                                         <td className="py-3.5 px-4">
                                             <div className="flex items-center gap-2">
@@ -317,8 +317,8 @@ export default function AdminUsersPage() {
                                                         type="button"
                                                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition cursor-pointer ${
                                                             u.status === "ACTIVE"
-                                                                ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30"
-                                                                : "bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30"
+                                                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                                                                : "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
                                                         }`}
                                                     >
                                                         {u.status === "ACTIVE" ? <Unlock size={12} /> : <Lock size={12} />}
@@ -327,13 +327,13 @@ export default function AdminUsersPage() {
                                                 </Popconfirm>
                                             </div>
                                         </td>
-                                        <td className="py-3.5 px-4 text-xs text-slate-400">
+                                        <td className="py-3.5 px-4 text-xs text-slate-500">
                                             {formatDateTime(u.createdAt)}
                                         </td>
                                         <td className="py-3.5 px-4 text-right">
                                             <button
                                                 onClick={() => openEditModal(u)}
-                                                className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                                                className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 transition cursor-pointer"
                                                 title="Sửa thông tin"
                                             >
                                                 <Edit2 size={15} />
@@ -347,23 +347,23 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="p-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                     <div>
-                        Hiển thị <strong>{users.length}</strong> / <strong>{totalElements}</strong> người dùng (Trang {page + 1}/{Math.max(1, totalPages)})
+                        Hiển thị <strong className="text-slate-900">{users.length}</strong> / <strong className="text-slate-900">{totalElements}</strong> người dùng (Trang {page + 1}/{Math.max(1, totalPages)})
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => loadUsers(page - 1)}
                             disabled={page <= 0 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             ← Trước
                         </button>
-                        <span className="px-2 text-slate-300 font-semibold">{page + 1}</span>
+                        <span className="px-2 text-slate-900 font-bold">{page + 1}</span>
                         <button
                             onClick={() => loadUsers(page + 1)}
                             disabled={page >= totalPages - 1 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             Sau →
                         </button>
@@ -373,7 +373,7 @@ export default function AdminUsersPage() {
 
             {/* Modal Create User */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Thêm người dùng mới</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Thêm người dùng mới</span>}
                 open={isCreateOpen}
                 onCancel={() => setIsCreateOpen(false)}
                 footer={null}
@@ -382,29 +382,29 @@ export default function AdminUsersPage() {
             >
                 <form onSubmit={handleCreateUser} className="space-y-4 mt-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Email đăng nhập *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Email đăng nhập *</label>
                         <input
                             type="email"
                             placeholder="user@wareflow.com"
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Họ và tên *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
                         <input
                             type="text"
                             placeholder="Nguyễn Văn B"
                             value={newFullName}
                             onChange={(e) => setNewFullName(e.target.value)}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Mật khẩu khởi tạo * (tối thiểu 6 ký tự)</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu khởi tạo * (tối thiểu 6 ký tự)</label>
                         <input
                             type="password"
                             placeholder="Nhập mật khẩu"
@@ -412,15 +412,15 @@ export default function AdminUsersPage() {
                             onChange={(e) => setNewPassword(e.target.value)}
                             required
                             minLength={6}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Vai trò người dùng *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Vai trò người dùng *</label>
                         <select
                             value={newRole}
                             onChange={(e) => setNewRole(e.target.value as Role)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         >
                             <option value="WAREHOUSE_OWNER">WAREHOUSE_OWNER (Chủ kho)</option>
                             <option value="ADMIN">ADMIN (Quản trị viên)</option>
@@ -428,40 +428,40 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Số điện thoại</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại</label>
                             <input
                                 type="text"
                                 placeholder="0912..."
                                 value={newPhone}
                                 onChange={(e) => setNewPhone(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Địa chỉ</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Địa chỉ</label>
                             <input
                                 type="text"
                                 placeholder="Hà Nội"
                                 value={newAddress}
                                 onChange={(e) => setNewAddress(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                         <button
                             type="button"
                             onClick={() => setIsCreateOpen(false)}
-                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-emerald-950"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                         >
-                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Tạo người dùng
                         </button>
                     </div>
@@ -470,7 +470,7 @@ export default function AdminUsersPage() {
 
             {/* Modal Edit User */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Chỉnh sửa thông tin người dùng</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Chỉnh sửa thông tin người dùng</span>}
                 open={isEditOpen}
                 onCancel={() => setIsEditOpen(false)}
                 footer={null}
@@ -479,30 +479,30 @@ export default function AdminUsersPage() {
             >
                 <form onSubmit={handleUpdateUser} className="space-y-4 mt-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Email</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
                         <input
                             type="email"
                             value={editEmail}
                             onChange={(e) => setEditEmail(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Họ và tên *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
                         <input
                             type="text"
                             value={editFullName}
                             onChange={(e) => setEditFullName(e.target.value)}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Vai trò</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Vai trò</label>
                         <select
                             value={editRole}
                             onChange={(e) => setEditRole(e.target.value as Role)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         >
                             <option value="WAREHOUSE_OWNER">WAREHOUSE_OWNER (Chủ kho)</option>
                             <option value="ADMIN">ADMIN (Quản trị viên)</option>
@@ -510,38 +510,38 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Số điện thoại</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại</label>
                             <input
                                 type="text"
                                 value={editPhone}
                                 onChange={(e) => setEditPhone(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Địa chỉ</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Địa chỉ</label>
                             <input
                                 type="text"
                                 value={editAddress}
                                 onChange={(e) => setEditAddress(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                         <button
                             type="button"
                             onClick={() => setIsEditOpen(false)}
-                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-emerald-950"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                         >
-                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Lưu thay đổi
                         </button>
                     </div>

@@ -8,7 +8,7 @@ import {
     setAuthenticated,
 } from "../store/slice/authSlice";
 import { authService } from "../api/services/authService";
-import type { Role, UserResponse } from "../types";
+import type { RegisterRequest, Role, UserResponse } from "../types";
 
 interface AuthContextType {
     user: UserResponse | null;
@@ -18,17 +18,19 @@ interface AuthContextType {
     isLoading: boolean;
     role: Role | null;
     login: (email: string, password: string) => Promise<UserResponse>;
+    register: (data: RegisterRequest) => Promise<UserResponse>;
     logout: () => Promise<void>;
     refreshProfile: () => Promise<UserResponse | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const dispatch = useAppDispatch();
-    const { user, accessToken, refreshToken, isAuthenticated, isLoading } = useAppSelector(
-        (state) => state.auth
-    );
+    const { user, accessToken, refreshToken, isAuthenticated, isLoading } =
+        useAppSelector((state) => state.auth);
 
     // On app init, validate the token from store/sessionStorage by fetching /api/me
     useEffect(() => {
@@ -49,14 +51,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run only once on mount
 
-    const login = async (email: string, password: string): Promise<UserResponse> => {
+    const login = async (
+        email: string,
+        password: string,
+    ): Promise<UserResponse> => {
         const response = await authService.login({ email, password });
         dispatch(
             setCredentials({
                 user: response.user,
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,
-            })
+            }),
+        );
+        return response.user;
+    };
+
+    const register = async (data: RegisterRequest): Promise<UserResponse> => {
+        const response = await authService.register(data);
+        dispatch(
+            setCredentials({
+                user: response.user,
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+            }),
         );
         return response.user;
     };
@@ -89,11 +106,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         role: user?.role || null,
         login,
+        register,
         logout,
         refreshProfile,
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    );
 };
 
 export const useAuth = (): AuthContextType => {

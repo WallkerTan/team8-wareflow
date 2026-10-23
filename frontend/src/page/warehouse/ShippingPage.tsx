@@ -200,25 +200,25 @@ export default function ShippingPage() {
         switch (status) {
             case "PENDING":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                         <Clock size={12} /> Chờ giao (PENDING)
                     </span>
                 );
             case "SHIPPING":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                         <Truck size={12} /> Đang giao (SHIPPING)
                     </span>
                 );
             case "COMPLETED":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <CheckCircle2 size={12} /> Đã hoàn tất (COMPLETED)
                     </span>
                 );
             case "CANCELLED":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                         <XCircle size={12} /> Đã hủy (CANCELLED)
                     </span>
                 );
@@ -227,12 +227,12 @@ export default function ShippingPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Truck className="text-cyan-400" size={26} /> Quản lý Giao hàng & Vận đơn
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <Truck className="text-blue-600" size={26} /> Quản lý Giao hàng & Vận đơn
                     </h1>
-                    <p className="text-slate-400 text-sm mt-1">
+                    <p className="text-slate-500 text-sm mt-1">
                         Khởi tạo vận đơn từ phiếu xuất đã duyệt, giám sát lộ trình và ghi nhận lịch sử trạng thái.
                     </p>
                 </div>
@@ -240,14 +240,14 @@ export default function ShippingPage() {
                     <button
                         onClick={() => loadShipments()}
                         disabled={loading}
-                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 transition cursor-pointer"
+                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium border border-slate-200 shadow-sm transition cursor-pointer"
                     >
-                        <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+                        <RefreshCw size={15} className={loading ? "animate-spin text-blue-600" : "text-slate-500"} />
                         Làm mới
                     </button>
                     <button
                         onClick={handleOpenCreate}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition shadow-lg shadow-cyan-950 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-sm shadow-blue-500/20 cursor-pointer"
                     >
                         <Plus size={16} /> Tạo vận đơn mới
                     </button>
@@ -255,7 +255,7 @@ export default function ShippingPage() {
             </div>
 
             {/* Filter Tools */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-lg">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-sm">
                 <form onSubmit={handleSearch} className="flex-1 flex items-center gap-2 max-w-sm">
                     <div className="relative flex-1">
                         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -264,12 +264,12 @@ export default function ShippingPage() {
                             placeholder="Lọc theo ID phiếu xuất (Issue ID)..."
                             value={issueIdFilter}
                             onChange={(e) => setIssueIdFilter(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-cyan-500 transition"
+                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium transition cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition cursor-pointer shadow-sm"
                     >
                         Lọc
                     </button>
@@ -279,7 +279,7 @@ export default function ShippingPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as ShipmentStatus | "ALL")}
-                        className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
                     >
                         <option value="ALL">Tất cả trạng thái vận chuyển</option>
                         <option value="PENDING">PENDING (Chờ lấy hàng)</option>
@@ -288,18 +288,18 @@ export default function ShippingPage() {
                         <option value="CANCELLED">CANCELLED (Đã hủy)</option>
                     </select>
 
-                    <div className="text-xs text-slate-400">
-                        Tổng: <strong className="text-white">{totalElements}</strong> vận đơn
+                    <div className="text-xs text-slate-500">
+                        Tổng: <strong className="text-slate-900 font-bold">{totalElements}</strong> vận đơn
                     </div>
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
-                            <tr className="border-b border-slate-700/80 bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 text-xs uppercase tracking-wider font-semibold">
                                 <th className="py-3.5 px-4 font-semibold">Mã vận đơn</th>
                                 <th className="py-3.5 px-4 font-semibold">Phiếu xuất</th>
                                 <th className="py-3.5 px-4 font-semibold">Đơn vị / Tracking</th>
@@ -309,42 +309,42 @@ export default function ShippingPage() {
                                 <th className="py-3.5 px-4 font-semibold text-right">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700/50">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                    <td colSpan={7} className="py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center justify-center gap-2">
-                                            <Loader2 size={24} className="animate-spin text-cyan-400" />
+                                            <Loader2 size={24} className="animate-spin text-blue-600" />
                                             <span>Đang tải danh sách vận đơn...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : shipments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-400">
-                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-500" />
+                                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-400" />
                                         <span>Chưa có vận đơn nào được tạo.</span>
                                     </td>
                                 </tr>
                             ) : (
                                 shipments.map((s) => (
-                                    <tr key={s.id} className="hover:bg-slate-700/30 transition">
-                                        <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                                    <tr key={s.id} className="hover:bg-slate-50 transition">
+                                        <td className="py-3.5 px-4 font-mono font-bold text-blue-600">
                                             {s.shipmentNo}
                                         </td>
                                         <td className="py-3.5 px-4 text-xs">
-                                            <div className="font-semibold text-white">{s.issueNo || `Phiếu #${s.issueId}`}</div>
-                                            <div className="text-slate-400">ID: {s.issueId}</div>
+                                            <div className="font-semibold text-slate-900">{s.issueNo || `Phiếu #${s.issueId}`}</div>
+                                            <div className="text-slate-500">ID: {s.issueId}</div>
                                         </td>
                                         <td className="py-3.5 px-4 text-xs">
-                                            <div className="font-semibold text-slate-200">{s.carrierName || "Tự vận chuyển"}</div>
-                                            <div className="text-slate-400 font-mono">{s.trackingNumber || "Chưa có mã"}</div>
+                                            <div className="font-semibold text-slate-800">{s.carrierName || "Tự vận chuyển"}</div>
+                                            <div className="text-slate-500 font-mono">{s.trackingNumber || "Chưa có mã"}</div>
                                         </td>
-                                        <td className="py-3.5 px-4 text-xs text-slate-300">
-                                            <div className="font-semibold text-white">{s.receiverName || "-"}</div>
-                                            <div className="text-slate-400 truncate max-w-[180px]">{s.receiverAddress || "-"}</div>
+                                        <td className="py-3.5 px-4 text-xs text-slate-700">
+                                            <div className="font-semibold text-slate-900">{s.receiverName || "-"}</div>
+                                            <div className="text-slate-500 truncate max-w-[180px]">{s.receiverAddress || "-"}</div>
                                         </td>
-                                        <td className="py-3.5 px-4 text-xs text-slate-400">
+                                        <td className="py-3.5 px-4 text-xs text-slate-500">
                                             {formatDate(s.shipmentDate)}
                                         </td>
                                         <td className="py-3.5 px-4">
@@ -354,7 +354,7 @@ export default function ShippingPage() {
                                             <div className="flex items-center justify-end gap-1.5">
                                                 <button
                                                     onClick={() => openTimelineLogs(s)}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-200 transition cursor-pointer"
                                                     title="Xem Timeline Lịch sử"
                                                 >
                                                     <History size={13} /> Lịch sử
@@ -362,7 +362,7 @@ export default function ShippingPage() {
 
                                                 <button
                                                     onClick={() => openStatusModal(s)}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600/90 hover:bg-cyan-600 text-white text-xs font-semibold transition cursor-pointer shadow-sm"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition cursor-pointer shadow-sm"
                                                     title="Cập nhật trạng thái"
                                                 >
                                                     <Edit3 size={13} /> Cập nhật
@@ -377,23 +377,23 @@ export default function ShippingPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="p-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                     <div>
-                        Hiển thị <strong>{shipments.length}</strong> / <strong>{totalElements}</strong> vận đơn (Trang {page + 1}/{Math.max(1, totalPages)})
+                        Hiển thị <strong className="text-slate-900">{shipments.length}</strong> / <strong className="text-slate-900">{totalElements}</strong> vận đơn (Trang {page + 1}/{Math.max(1, totalPages)})
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => loadShipments(page - 1)}
                             disabled={page <= 0 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             ← Trước
                         </button>
-                        <span className="px-2 text-slate-300 font-semibold">{page + 1}</span>
+                        <span className="px-2 text-slate-900 font-bold">{page + 1}</span>
                         <button
                             onClick={() => loadShipments(page + 1)}
                             disabled={page >= totalPages - 1 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             Sau →
                         </button>
@@ -403,7 +403,7 @@ export default function ShippingPage() {
 
             {/* Modal Create Shipment */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Tạo vận đơn giao hàng mới</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Tạo vận đơn giao hàng mới</span>}
                 open={isCreateOpen}
                 onCancel={() => setIsCreateOpen(false)}
                 footer={null}
@@ -411,16 +411,16 @@ export default function ShippingPage() {
                 destroyOnClose
             >
                 <form onSubmit={handleCreateShipment} className="space-y-4 mt-4">
-                    <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-xs text-cyan-300">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-700">
                         Chỉ các phiếu xuất ở trạng thái <strong>CONFIRMED (Đã xuất kho)</strong> mới có thể tạo vận đơn (quan hệ 1-1).
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
                             Chọn phiếu xuất hàng *
                         </label>
                         {confirmedIssues.length === 0 ? (
-                            <div className="p-3 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-400">
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
                                 Hiện tại không có phiếu xuất nào đã CONFIRMED. Hãy tạo và duyệt phiếu xuất trước.
                             </div>
                         ) : (
@@ -428,7 +428,7 @@ export default function ShippingPage() {
                                 value={selectedIssueId ?? ""}
                                 onChange={(e) => setSelectedIssueId(Number(e.target.value))}
                                 required
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
                                 <option value="">-- Chọn phiếu xuất --</option>
                                 {confirmedIssues.map((iss) => (
@@ -442,7 +442,7 @@ export default function ShippingPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Đơn vị vận chuyển
                             </label>
                             <input
@@ -450,11 +450,11 @@ export default function ShippingPage() {
                                 placeholder="Giao Hàng Nhanh / Viettel Post..."
                                 value={carrierName}
                                 onChange={(e) => setCarrierName(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Mã tracking / Vận đơn
                             </label>
                             <input
@@ -462,37 +462,37 @@ export default function ShippingPage() {
                                 placeholder="GHN-987654"
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500 font-mono"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500 font-mono"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
                             Ngày giao hàng dự kiến
                         </label>
                         <input
                             type="date"
                             value={shipmentDate}
                             onChange={(e) => setShipmentDate(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                         <button
                             type="button"
                             onClick={() => setIsCreateOpen(false)}
-                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={submitting || confirmedIssues.length === 0}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-cyan-950"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                         >
-                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Tạo vận đơn
                         </button>
                     </div>
@@ -501,7 +501,7 @@ export default function ShippingPage() {
 
             {/* Modal Update Status */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Cập nhật trạng thái vận đơn</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Cập nhật trạng thái vận đơn</span>}
                 open={isStatusModalOpen}
                 onCancel={() => setIsStatusModalOpen(false)}
                 footer={null}
@@ -510,25 +510,25 @@ export default function ShippingPage() {
             >
                 {updatingShipment && (
                     <form onSubmit={handleUpdateStatus} className="space-y-4 mt-4">
-                        <div className="p-3 bg-slate-900 rounded-xl border border-slate-700/80 text-xs flex justify-between items-center">
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
                             <div>
-                                <span className="text-slate-400">Vận đơn:</span>{" "}
-                                <strong className="text-cyan-400 font-mono">{updatingShipment.shipmentNo}</strong>
+                                <span className="text-slate-500">Vận đơn:</span>{" "}
+                                <strong className="text-blue-600 font-mono">{updatingShipment.shipmentNo}</strong>
                             </div>
                             <div>
-                                <span className="text-slate-400">Hiện tại:</span>{" "}
-                                <strong className="text-white">{updatingShipment.status}</strong>
+                                <span className="text-slate-500">Hiện tại:</span>{" "}
+                                <strong className="text-slate-900">{updatingShipment.status}</strong>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Trạng thái mới *
                             </label>
                             <select
                                 value={nextStatus}
                                 onChange={(e) => setNextStatus(e.target.value as ShipmentStatus)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
                                 <option value="PENDING">PENDING (Chờ lấy hàng)</option>
                                 <option value="SHIPPING">SHIPPING (Đang vận chuyển)</option>
@@ -538,7 +538,7 @@ export default function ShippingPage() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Ghi chú cập nhật lộ trình (sẽ được ghi vào log)
                             </label>
                             <textarea
@@ -546,49 +546,49 @@ export default function ShippingPage() {
                                 placeholder="vd: Hàng đã rời kho trung chuyển số 3..."
                                 value={statusNote}
                                 onChange={(e) => setStatusNote(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-slate-300 mb-1">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
                                     Đơn vị vận chuyển
                                 </label>
                                 <input
                                     type="text"
                                     value={updateCarrier}
                                     onChange={(e) => setUpdateCarrier(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-300 mb-1">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1">
                                     Mã tracking
                                 </label>
                                 <input
                                     type="text"
                                     value={updateTracking}
                                     onChange={(e) => setUpdateTracking(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500 font-mono"
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500 font-mono"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                        <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                             <button
                                 type="button"
                                 onClick={() => setIsStatusModalOpen(false)}
-                                className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                                className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                             >
                                 Hủy
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-cyan-950"
+                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                             >
-                                {submitting && <Loader2 size={16} className="animate-spin" />}
+                                {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                                 Cập nhật trạng thái
                             </button>
                         </div>
@@ -598,7 +598,7 @@ export default function ShippingPage() {
 
             {/* Modal Timeline Logs */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Lịch sử Lộ trình Vận chuyển (Timeline Logs)</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Lịch sử Lộ trình Vận chuyển (Timeline Logs)</span>}
                 open={isTimelineOpen}
                 onCancel={() => setIsTimelineOpen(false)}
                 footer={null}
@@ -607,48 +607,48 @@ export default function ShippingPage() {
             >
                 {selectedShipmentForLogs && (
                     <div className="space-y-4 mt-3">
-                        <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 text-xs space-y-1">
+                        <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1">
                             <div className="flex justify-between">
-                                <span className="text-slate-400">Vận đơn:</span>
-                                <strong className="text-cyan-400 font-mono">{selectedShipmentForLogs.shipmentNo}</strong>
+                                <span className="text-slate-500">Vận đơn:</span>
+                                <strong className="text-blue-600 font-mono">{selectedShipmentForLogs.shipmentNo}</strong>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-400">Người nhận:</span>
-                                <strong className="text-white">{selectedShipmentForLogs.receiverName}</strong>
+                                <span className="text-slate-500">Người nhận:</span>
+                                <strong className="text-slate-900">{selectedShipmentForLogs.receiverName}</strong>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-400">Địa chỉ:</span>
-                                <span className="text-slate-300">{selectedShipmentForLogs.receiverAddress || "-"}</span>
+                                <span className="text-slate-500">Địa chỉ:</span>
+                                <span className="text-slate-700">{selectedShipmentForLogs.receiverAddress || "-"}</span>
                             </div>
                         </div>
 
                         {loadingLogs ? (
-                            <div className="py-8 text-center text-slate-400">
-                                <Loader2 size={24} className="animate-spin mx-auto text-cyan-400 mb-2" />
+                            <div className="py-8 text-center text-slate-500">
+                                <Loader2 size={24} className="animate-spin mx-auto text-blue-600 mb-2" />
                                 <span>Đang tải lịch sử lộ trình...</span>
                             </div>
                         ) : timelineLogs.length === 0 ? (
-                            <div className="py-8 text-center text-slate-400 text-xs">
+                            <div className="py-8 text-center text-slate-500 text-xs">
                                 Chưa có sự kiện thay đổi trạng thái nào được ghi lại.
                             </div>
                         ) : (
                             <div className="space-y-3 pl-2">
                                 {timelineLogs.map((log, idx) => (
-                                    <div key={log.id || idx} className="relative pl-6 pb-4 border-l-2 border-slate-700 last:border-l-0 last:pb-0">
-                                        <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-cyan-500 border-2 border-slate-900" />
-                                        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 text-xs space-y-1">
+                                    <div key={log.id || idx} className="relative pl-6 pb-4 border-l-2 border-slate-200 last:border-l-0 last:pb-0">
+                                        <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-600 border-2 border-white" />
+                                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-1.5 font-bold text-white">
+                                                <div className="flex items-center gap-1.5 font-bold text-slate-900">
                                                     <span>{log.fromStatus || "TẠO MỚI"}</span>
-                                                    <ArrowRight size={13} className="text-cyan-400" />
-                                                    <span className="text-cyan-400">{log.toStatus}</span>
+                                                    <ArrowRight size={13} className="text-blue-600" />
+                                                    <span className="text-blue-600">{log.toStatus}</span>
                                                 </div>
-                                                <span className="text-[11px] text-slate-400">
+                                                <span className="text-[11px] text-slate-500">
                                                     {formatDateTime(log.createdAt)}
                                                 </span>
                                             </div>
                                             {log.note && (
-                                                <p className="text-slate-300 mt-1 italic bg-slate-900/40 p-2 rounded-lg">
+                                                <p className="text-slate-700 mt-1 italic bg-white p-2 rounded-lg border border-slate-200">
                                                     "{log.note}"
                                                 </p>
                                             )}
@@ -666,7 +666,7 @@ export default function ShippingPage() {
                         <div className="flex justify-end pt-2">
                             <button
                                 onClick={() => setIsTimelineOpen(false)}
-                                className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs cursor-pointer font-medium"
+                                className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs cursor-pointer font-medium"
                             >
                                 Đóng
                             </button>

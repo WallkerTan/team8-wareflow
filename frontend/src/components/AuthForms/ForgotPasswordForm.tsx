@@ -9,16 +9,20 @@ export default function ForgotPasswordForm() {
     return (
         <div className="auth-card">
             <Link className="auth-logo logo" to="/">
-                <span>W</span>
+                <div className="text-white bg-blue-500 rounded-[10px] p-2">
+                    W
+                </div>
                 <strong>
-                    ware<span>flow</span>
+                    ware
+                    <div className="text-blue-500">flow</div>
                 </strong>
             </Link>
             <div className="auth-copy">
                 <p className="crumb">KHÔI PHỤC TÀI KHOẢN</p>
                 <h1>Quên mật khẩu?</h1>
                 <p>
-                    Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.
+                    Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết đặt lại mật
+                    khẩu.
                 </p>
             </div>
             <form onSubmit={handleSubmit}>

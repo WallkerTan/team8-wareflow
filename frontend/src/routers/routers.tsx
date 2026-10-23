@@ -12,6 +12,8 @@ import { PublicOnlyRoute } from "../components/auth/PublicOnlyRoute";
 
 // Auth Pages
 import LoginPage from "../page/au/LoginPage";
+import RegisterPage from "../page/au/RegisterPage";
+import ForgotPasswordPage from "../page/au/ForgotPasswordPage";
 
 // Admin Pages
 import AdminDashboardPage from "../page/ad/AdminDashboardPage";
@@ -36,7 +38,7 @@ const router_wareflow = createBrowserRouter([
         element: <LandingPage />,
     },
 
-    // Public Only: Login
+    // Public Only: Login & Register
     {
         element: <PublicOnlyRoute />,
         children: [
@@ -52,6 +54,14 @@ const router_wareflow = createBrowserRouter([
                         path: "login",
                         element: <LoginPage />,
                     },
+                    {
+                        path: "register",
+                        element: <RegisterPage />,
+                    },
+                    {
+                        path: "forgot",
+                        element: <ForgotPasswordPage />,
+                    },
                 ],
             },
             {
@@ -59,6 +69,14 @@ const router_wareflow = createBrowserRouter([
                 element: (
                     <AuthLayout>
                         <LoginPage />
+                    </AuthLayout>
+                ),
+            },
+            {
+                path: "/register",
+                element: (
+                    <AuthLayout>
+                        <RegisterPage />
                     </AuthLayout>
                 ),
             },

@@ -185,12 +185,12 @@ export default function ProductsPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Package className="text-emerald-400" size={26} /> Quản lý Sản phẩm & Tồn kho
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <Package className="text-blue-600" size={26} /> Quản lý Sản phẩm & Tồn kho
                     </h1>
-                    <p className="text-slate-400 text-sm mt-1">
+                    <p className="text-slate-500 text-sm mt-1">
                         Theo dõi định mức tồn kho, phát hiện cảnh báo thiếu hụt và phân loại mặt hàng.
                     </p>
                 </div>
@@ -198,9 +198,9 @@ export default function ProductsPage() {
                     <button
                         onClick={() => loadProducts()}
                         disabled={loading}
-                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 transition cursor-pointer"
+                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium border border-slate-200 shadow-sm transition cursor-pointer"
                     >
-                        <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+                        <RefreshCw size={15} className={loading ? "animate-spin text-blue-600" : "text-slate-500"} />
                         Làm mới
                     </button>
                     <button
@@ -215,7 +215,7 @@ export default function ProductsPage() {
                             setMinStock(5);
                             setIsCreateOpen(true);
                         }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition shadow-lg shadow-emerald-950 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-sm shadow-blue-500/20 cursor-pointer"
                     >
                         <Plus size={16} /> Thêm sản phẩm
                     </button>
@@ -223,7 +223,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Filter Tools */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-lg">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-sm">
                 <form onSubmit={handleSearch} className="flex-1 flex items-center gap-2">
                     <div className="relative flex-1">
                         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -232,12 +232,12 @@ export default function ProductsPage() {
                             placeholder="Tìm kiếm theo mã SKU hoặc tên sản phẩm..."
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-emerald-500 transition"
+                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium transition cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-sm font-medium transition cursor-pointer"
                     >
                         Tìm
                     </button>
@@ -251,7 +251,7 @@ export default function ProductsPage() {
                             onChange={(e) =>
                                 setSelectedCategoryId(e.target.value ? Number(e.target.value) : undefined)
                             }
-                            className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
+                            className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
                         >
                             <option value="">Tất cả danh mục</option>
                             {categories.map((c) => (
@@ -268,22 +268,22 @@ export default function ProductsPage() {
                         onClick={() => setLowStockOnly(!lowStockOnly)}
                         className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
                             lowStockOnly
-                                ? "bg-red-500/20 text-red-300 border-red-500/40 shadow-lg shadow-red-950/40"
-                                : "bg-slate-900 text-slate-400 border-slate-700 hover:text-slate-200"
+                                ? "bg-red-50 text-red-700 border-red-200 shadow-sm"
+                                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                     >
-                        <AlertTriangle size={14} className={lowStockOnly ? "text-red-400" : "text-slate-400"} />
+                        <AlertTriangle size={14} className={lowStockOnly ? "text-red-500" : "text-slate-400"} />
                         <span>Sản phẩm sắp hết hàng</span>
                     </button>
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
-                            <tr className="border-b border-slate-700/80 bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 text-xs uppercase tracking-wider font-semibold">
                                 <th className="py-3.5 px-4 font-semibold">Mặt hàng</th>
                                 <th className="py-3.5 px-4 font-semibold">Danh mục</th>
                                 <th className="py-3.5 px-4 font-semibold">Tồn kho hiện tại</th>
@@ -293,20 +293,20 @@ export default function ProductsPage() {
                                 <th className="py-3.5 px-4 font-semibold text-right">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-700/50">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                    <td colSpan={7} className="py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center justify-center gap-2">
-                                            <Loader2 size={24} className="animate-spin text-emerald-400" />
+                                            <Loader2 size={24} className="animate-spin text-blue-600" />
                                             <span>Đang tải dữ liệu hàng hóa...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-400">
-                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-500" />
+                                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-400" />
                                         <span>Không tìm thấy sản phẩm nào trong kho.</span>
                                     </td>
                                 </tr>
@@ -314,46 +314,46 @@ export default function ProductsPage() {
                                 products.map((p) => {
                                     const isLow = p.lowStock || p.stockQuantity <= p.minStock;
                                     return (
-                                        <tr key={p.id} className="hover:bg-slate-700/30 transition">
+                                        <tr key={p.id} className="hover:bg-slate-50 transition">
                                             <td className="py-3.5 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/20">
+                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-xs border border-blue-100">
                                                         {p.unit ? p.unit.substring(0, 2).toUpperCase() : "SP"}
                                                     </div>
                                                     <div>
-                                                        <div className="font-semibold text-white">{p.name}</div>
-                                                        <div className="text-xs font-mono text-emerald-400/90">{p.sku}</div>
+                                                        <div className="font-semibold text-slate-900">{p.name}</div>
+                                                        <div className="text-xs font-mono text-blue-600 font-medium">{p.sku}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-4">
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-700/60 text-slate-300 text-xs border border-slate-600">
-                                                    <Tag size={11} className="text-slate-400" />
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs border border-slate-200">
+                                                    <Tag size={11} className="text-slate-500" />
                                                     {p.categoryName || "Chưa gán"}
                                                 </span>
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <div className="flex items-baseline gap-1.5">
-                                                    <span className={`text-base font-extrabold ${isLow ? "text-red-400" : "text-white"}`}>
+                                                    <span className={`text-base font-extrabold ${isLow ? "text-red-600" : "text-slate-900"}`}>
                                                         {p.stockQuantity.toLocaleString("vi-VN")}
                                                     </span>
-                                                    <span className="text-xs text-slate-400">{p.unit || "Cái"}</span>
+                                                    <span className="text-xs text-slate-500">{p.unit || "Cái"}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-3.5 px-4 text-xs text-slate-400">
+                                            <td className="py-3.5 px-4 text-xs text-slate-500">
                                                 <span>{p.minStock.toLocaleString("vi-VN")} {p.unit || "Cái"}</span>
                                             </td>
-                                            <td className="py-3.5 px-4 text-xs font-semibold text-slate-200">
+                                            <td className="py-3.5 px-4 text-xs font-semibold text-slate-800">
                                                 {formatCurrency(p.price)}
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 {isLow ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
                                                         <AlertTriangle size={12} /> Sắp hết hàng
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Đủ hàng
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Đủ hàng
                                                     </span>
                                                 )}
                                             </td>
@@ -361,7 +361,7 @@ export default function ProductsPage() {
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         onClick={() => openEditModal(p)}
-                                                        className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                                                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 transition cursor-pointer"
                                                         title="Sửa thông tin"
                                                     >
                                                         <Edit2 size={15} />
@@ -375,7 +375,7 @@ export default function ProductsPage() {
                                                         onConfirm={() => handleDelete(p.id)}
                                                     >
                                                         <button
-                                                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition cursor-pointer"
+                                                            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition cursor-pointer"
                                                             title="Xóa sản phẩm"
                                                         >
                                                             <Trash2 size={15} />
@@ -392,23 +392,23 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="p-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                     <div>
-                        Hiển thị <strong>{products.length}</strong> / <strong>{totalElements}</strong> sản phẩm (Trang {page + 1}/{Math.max(1, totalPages)})
+                        Hiển thị <strong className="text-slate-900">{products.length}</strong> / <strong className="text-slate-900">{totalElements}</strong> sản phẩm (Trang {page + 1}/{Math.max(1, totalPages)})
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => loadProducts(page - 1)}
                             disabled={page <= 0 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             ← Trước
                         </button>
-                        <span className="px-2 text-slate-300 font-semibold">{page + 1}</span>
+                        <span className="px-2 text-slate-900 font-bold">{page + 1}</span>
                         <button
                             onClick={() => loadProducts(page + 1)}
                             disabled={page >= totalPages - 1 || loading}
-                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-40 text-slate-700 transition cursor-pointer shadow-xs"
                         >
                             Sau →
                         </button>
@@ -418,7 +418,7 @@ export default function ProductsPage() {
 
             {/* Modal Create Product */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Thêm sản phẩm mới vào kho</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Thêm sản phẩm mới vào kho</span>}
                 open={isCreateOpen}
                 onCancel={() => setIsCreateOpen(false)}
                 footer={null}
@@ -428,22 +428,22 @@ export default function ProductsPage() {
                 <form onSubmit={handleCreate} className="space-y-4 mt-4">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Mã SKU *</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Mã SKU *</label>
                             <input
                                 type="text"
                                 placeholder="vd: SP-IPHONE15"
                                 value={sku}
                                 onChange={(e) => setSku(e.target.value)}
                                 required
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 font-mono"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500 font-mono"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Danh mục</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Danh mục</label>
                             <select
                                 value={categoryId ?? ""}
                                 onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
                                 <option value="">-- Chọn danh mục --</option>
                                 {categories.map((c) => (
@@ -456,89 +456,89 @@ export default function ProductsPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Tên sản phẩm *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Tên sản phẩm *</label>
                         <input
                             type="text"
                             placeholder="vd: Điện thoại iPhone 15 Pro 128GB"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Mô tả sản phẩm</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Mô tả sản phẩm</label>
                         <textarea
                             rows={2}
                             placeholder="Thông số kỹ thuật hoặc ghi chú bảo quản..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Đơn vị tính</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Đơn vị tính</label>
                             <input
                                 type="text"
                                 placeholder="Cái, Thùng, Hộp..."
                                 value={unit}
                                 onChange={(e) => setUnit(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Giá tham khảo (VNĐ)</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Giá tham khảo (VNĐ)</label>
                             <input
                                 type="number"
                                 placeholder="0"
                                 value={price ?? ""}
                                 onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Số lượng tồn ban đầu</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Số lượng tồn ban đầu</label>
                             <input
                                 type="number"
                                 min={0}
                                 value={stockQuantity}
                                 onChange={(e) => setStockQuantity(Number(e.target.value))}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Ngưỡng cảnh báo tồn thấp *</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Ngưỡng cảnh báo tồn thấp *</label>
                             <input
                                 type="number"
                                 min={0}
                                 value={minStock}
                                 onChange={(e) => setMinStock(Number(e.target.value))}
                                 required
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                         <button
                             type="button"
                             onClick={() => setIsCreateOpen(false)}
-                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-emerald-950"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                         >
-                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Thêm sản phẩm
                         </button>
                     </div>
@@ -547,7 +547,7 @@ export default function ProductsPage() {
 
             {/* Modal Edit Product */}
             <Modal
-                title={<span className="text-white text-lg font-bold">Chỉnh sửa thông tin sản phẩm</span>}
+                title={<span className="text-slate-900 text-lg font-bold">Chỉnh sửa thông tin sản phẩm</span>}
                 open={isEditOpen}
                 onCancel={() => setIsEditOpen(false)}
                 footer={null}
@@ -555,27 +555,27 @@ export default function ProductsPage() {
                 destroyOnClose
             >
                 <form onSubmit={handleUpdate} className="space-y-4 mt-4">
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300">
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                         Lưu ý: Tồn kho chỉ thay đổi thông qua Phiếu Nhập kho hoặc Phiếu Xuất kho hợp lệ.
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Mã SKU *</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Mã SKU *</label>
                             <input
                                 type="text"
                                 value={sku}
                                 onChange={(e) => setSku(e.target.value)}
                                 required
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 font-mono"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500 font-mono"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Danh mục</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Danh mục</label>
                             <select
                                 value={categoryId ?? ""}
                                 onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
                                 <option value="">-- Chọn danh mục --</option>
                                 {categories.map((c) => (
@@ -588,73 +588,73 @@ export default function ProductsPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Tên sản phẩm *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Tên sản phẩm *</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Mô tả sản phẩm</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Mô tả sản phẩm</label>
                         <textarea
                             rows={2}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Đơn vị tính</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Đơn vị tính</label>
                             <input
                                 type="text"
                                 value={unit}
                                 onChange={(e) => setUnit(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Giá tham khảo (VNĐ)</label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Giá tham khảo (VNĐ)</label>
                             <input
                                 type="number"
                                 value={price ?? ""}
                                 onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : undefined)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">Ngưỡng cảnh báo tồn thấp *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Ngưỡng cảnh báo tồn thấp *</label>
                         <input
                             type="number"
                             min={0}
                             value={minStock}
                             onChange={(e) => setMinStock(Number(e.target.value))}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                         <button
                             type="button"
                             onClick={() => setIsEditOpen(false)}
-                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-emerald-950"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-sm shadow-blue-500/20"
                         >
-                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Lưu thay đổi
                         </button>
                     </div>

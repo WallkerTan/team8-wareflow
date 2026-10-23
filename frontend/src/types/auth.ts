@@ -26,6 +26,14 @@ export interface LoginRequest {
     password: string;
 }
 
+export interface RegisterRequest {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address?: string;
+}
+
 export interface UpdateProfileRequest {
     fullName: string;
     email?: string;
