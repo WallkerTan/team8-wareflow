@@ -2,9 +2,12 @@ package com.example.backend.service;
 
 import com.example.backend.dto.AuthResponse;
 import com.example.backend.dto.LoginRequest;
+import com.example.backend.dto.RegisterRequest;
 import com.example.backend.dto.UserResponse;
 import com.example.backend.entity.User;
+import com.example.backend.enums.Role;
 import com.example.backend.enums.UserStatus;
+import com.example.backend.exception.BusinessException;
 import com.example.backend.exception.UnauthorizedException;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.security.JwtService;
@@ -36,6 +39,27 @@ public class AuthService {
         }
 
         return buildAuthResponse(user);
+    }
+
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new BusinessException("Email đã được đăng ký trong hệ thống");
+        }
+
+        User user = User.builder()
+                .email(email)
+                .fullName(request.getFullName().trim())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(Role.WAREHOUSE_OWNER)
+                .status(UserStatus.ACTIVE)
+                .phone(request.getPhone() != null && !request.getPhone().isBlank() ? request.getPhone().trim() : null)
+                .address(request.getAddress() != null && !request.getAddress().isBlank() ? request.getAddress().trim() : null)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        return buildAuthResponse(savedUser);
     }
 
     @Transactional(readOnly = true)

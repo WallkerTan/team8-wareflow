@@ -12,8 +12,8 @@ const LandingPage = () => {
                     <a href="#contact">Liên hệ</a>
                 </nav>
                 <div className="nav-actions">
-                    <a href="#contact">Đăng nhập</a>
-                    <a className="button small" href="#contact">
+                    <a href="/auth/login">Đăng nhập</a>
+                    <a className="button small" href="/auth/register">
                         Dùng thử miễn phí <strong>→</strong>
                     </a>
                 </div>
@@ -35,7 +35,7 @@ const LandingPage = () => {
                             hiệu quả.
                         </p>
                         <div className="actions">
-                            <a className="button" href="#contact">
+                            <a className="button" href="/auth/register">
                                 Bắt đầu miễn phí <strong>→</strong>
                             </a>
                             <a className="watch" href="#process">
