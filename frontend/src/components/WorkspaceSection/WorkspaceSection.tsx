@@ -1,43 +1,800 @@
 import { useState } from "react";
-import {
-    ArrowRight, Plus, Search, Truck, X,
-} from "lucide-react";
+import { ArrowRight, Plus, Search, Truck, X } from "lucide-react";
 
-function WorkspaceSection({ active, onCreate }: { active: string; onCreate: () => void }) {
+function WorkspaceSection({
+    active,
+    onCreate,
+}: {
+    active: string;
+    onCreate: () => void;
+}) {
     const [statusFilter, setStatusFilter] = useState("Tất cả");
     const [searchText, setSearchText] = useState("");
     const [showAll, setShowAll] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<string[] | null>(null);
     const [docStatuses, setDocStatuses] = useState<Record<string, string>>({});
-    const [selectedShipment, setSelectedShipment] = useState<string | null>(null);
+    const [selectedShipment, setSelectedShipment] = useState<string | null>(
+        null,
+    );
     const [showShipments, setShowShipments] = useState(false);
     const [shipmentFilter, setShipmentFilter] = useState("Tất cả");
-    const [shipmentStates, setShipmentStates] = useState<Record<string, string>>({ "GH-20261021-018": "SHIPPING", "GH-20261021-017": "PENDING", "GH-20261020-012": "COMPLETED", "GH-20261021-019": "PENDING" });
-    const shipmentRows = [["GH-20261021-018", "Nguyễn Hoàng Nam", "Cửa hàng Mộc Nhiên", "Đang giao"], ["GH-20261021-017", "Lê Quốc Bảo", "Nguyễn Hoàng Nam", "Chờ lấy hàng"], ["GH-20261020-012", "Trần Gia Huy", "Trần Bảo Ngọc", "Đã hoàn tất"], ["GH-20261021-019", "Trần Quốc Huy", "Trần Bảo Ngọc", "Chờ lấy hàng"]];
+    const [shipmentStates, setShipmentStates] = useState<
+        Record<string, string>
+    >({
+        "GH-20261021-018": "SHIPPING",
+        "GH-20261021-017": "PENDING",
+        "GH-20261020-012": "COMPLETED",
+        "GH-20261021-019": "PENDING",
+    });
+    const shipmentRows = [
+        [
+            "GH-20261021-018",
+            "Nguyễn Hoàng Nam",
+            "Cửa hàng Mộc Nhiên",
+            "Đang giao",
+        ],
+        ["GH-20261021-017", "Lê Quốc Bảo", "Nguyễn Hoàng Nam", "Chờ lấy hàng"],
+        ["GH-20261020-012", "Trần Gia Huy", "Trần Bảo Ngọc", "Đã hoàn tất"],
+        ["GH-20261021-019", "Trần Quốc Huy", "Trần Bảo Ngọc", "Chờ lấy hàng"],
+    ];
     const isReceipts = active === "Phiếu nhập";
     const isIssues = active === "Phiếu xuất";
     const isShipping = active === "Vận chuyển";
     const isHistory = active === "Lịch sử";
     const rows = isReceipts
-        ? [["PN-20261021-003", "Nhà cung cấp An Phát", "21/10/2026", "12 sản phẩm", "Chờ xác nhận"], ["PN-20261021-002", "Công ty Gia Dụng Việt", "21/10/2026", "8 sản phẩm", "Bản nháp"], ["PN-20261020-014", "Nhà cung cấp Minh Long", "20/10/2026", "24 sản phẩm", "Đã xác nhận"], ["PN-20261020-013", "Công ty Thiết bị Sao Việt", "20/10/2026", "6 sản phẩm", "Đã hủy"], ["PN-20261019-012", "Nhà cung cấp An Phát", "19/10/2026", "15 sản phẩm", "Đã xác nhận"], ["PN-20261018-011", "Công ty Gia Dụng Việt", "18/10/2026", "9 sản phẩm", "Bản nháp"]]
-        : [["PX-20261021-008", "Nguyễn Hoàng Nam", "21/10/2026", "5 sản phẩm", "Đang xử lý"], ["PX-20261021-007", "Cửa hàng Mộc Nhiên", "21/10/2026", "3 sản phẩm", "Bản nháp"], ["PX-20261020-021", "Trần Bảo Ngọc", "20/10/2026", "11 sản phẩm", "Đã xác nhận"], ["PX-20261020-020", "Cửa hàng Nắng Mai", "20/10/2026", "2 sản phẩm", "Đã hủy"], ["PX-20261019-019", "Nguyễn Hoàng Nam", "19/10/2026", "7 sản phẩm", "Đã xác nhận"], ["PX-20261018-018", "Cửa hàng Mộc Nhiên", "18/10/2026", "4 sản phẩm", "Đang xử lý"]];
-    const currentRows = rows.map(row => [row[0], row[1], row[2], row[3], docStatuses[row[0]] ?? row[4]]);
-    const filteredRows = currentRows.filter(row => (statusFilter === "Tất cả" || row[4] === statusFilter || (statusFilter === "Đang xử lý" && row[4] === "Chờ xác nhận")) && `${row[0]} ${row[1]}`.toLowerCase().includes(searchText.toLowerCase()));
+        ? [
+              [
+                  "PN-20261021-003",
+                  "Nhà cung cấp An Phát",
+                  "21/10/2026",
+                  "12 sản phẩm",
+                  "Chờ xác nhận",
+              ],
+              [
+                  "PN-20261021-002",
+                  "Công ty Gia Dụng Việt",
+                  "21/10/2026",
+                  "8 sản phẩm",
+                  "Bản nháp",
+              ],
+              [
+                  "PN-20261020-014",
+                  "Nhà cung cấp Minh Long",
+                  "20/10/2026",
+                  "24 sản phẩm",
+                  "Đã xác nhận",
+              ],
+              [
+                  "PN-20261020-013",
+                  "Công ty Thiết bị Sao Việt",
+                  "20/10/2026",
+                  "6 sản phẩm",
+                  "Đã hủy",
+              ],
+              [
+                  "PN-20261019-012",
+                  "Nhà cung cấp An Phát",
+                  "19/10/2026",
+                  "15 sản phẩm",
+                  "Đã xác nhận",
+              ],
+              [
+                  "PN-20261018-011",
+                  "Công ty Gia Dụng Việt",
+                  "18/10/2026",
+                  "9 sản phẩm",
+                  "Bản nháp",
+              ],
+          ]
+        : [
+              [
+                  "PX-20261021-008",
+                  "Nguyễn Hoàng Nam",
+                  "21/10/2026",
+                  "5 sản phẩm",
+                  "Đang xử lý",
+              ],
+              [
+                  "PX-20261021-007",
+                  "Cửa hàng Mộc Nhiên",
+                  "21/10/2026",
+                  "3 sản phẩm",
+                  "Bản nháp",
+              ],
+              [
+                  "PX-20261020-021",
+                  "Trần Bảo Ngọc",
+                  "20/10/2026",
+                  "11 sản phẩm",
+                  "Đã xác nhận",
+              ],
+              [
+                  "PX-20261020-020",
+                  "Cửa hàng Nắng Mai",
+                  "20/10/2026",
+                  "2 sản phẩm",
+                  "Đã hủy",
+              ],
+              [
+                  "PX-20261019-019",
+                  "Nguyễn Hoàng Nam",
+                  "19/10/2026",
+                  "7 sản phẩm",
+                  "Đã xác nhận",
+              ],
+              [
+                  "PX-20261018-018",
+                  "Cửa hàng Mộc Nhiên",
+                  "18/10/2026",
+                  "4 sản phẩm",
+                  "Đang xử lý",
+              ],
+          ];
+    const currentRows = rows.map((row) => [
+        row[0],
+        row[1],
+        row[2],
+        row[3],
+        docStatuses[row[0]] ?? row[4],
+    ]);
+    const filteredRows = currentRows.filter(
+        (row) =>
+            (statusFilter === "Tất cả" ||
+                row[4] === statusFilter ||
+                (statusFilter === "Đang xử lý" && row[4] === "Chờ xác nhận")) &&
+            `${row[0]} ${row[1]}`
+                .toLowerCase()
+                .includes(searchText.toLowerCase()),
+    );
     const shownRows = showAll ? filteredRows : filteredRows.slice(0, 3);
-    const shipmentStatusLabel = (code: string) => ({ PENDING: "Chờ lấy hàng", SHIPPING: "Đang giao", COMPLETED: "Đã hoàn tất", CANCELLED: "Đã hủy" }[code] ?? code);
-    const title = isReceipts ? "Phiếu nhập kho" : isIssues ? "Phiếu xuất kho" : isShipping ? "Theo dõi vận chuyển" : isHistory ? "Lịch sử hoạt động" : active;
-    const description = isReceipts ? "Theo dõi hàng hóa nhập về và cập nhật tồn kho." : isIssues ? "Quản lý yêu cầu xuất hàng và kiểm tra số lượng trước khi xác nhận." : isShipping ? "Nắm trạng thái giao hàng và tiến độ của từng tài xế." : isHistory ? "Xem lại các thay đổi trong hoạt động kho." : active === "Báo cáo" ? "Tổng hợp hiệu suất nhập xuất và biến động hàng tồn." : "Tùy chỉnh không gian làm việc theo cách bạn vận hành.";
-    return <section className="workspace-panel">
-        <div className="workspace-panel-head"><div><div className="panel-kicker">KHÔNG GIAN VẬN HÀNH</div><h2>{title}</h2><p>{description}</p></div>{!isHistory && <button className="button-primary" onClick={onCreate}><Plus size={16}/>{isIssues ? "Tạo phiếu xuất" : isShipping ? "Tạo đơn giao" : isReceipts ? "Tạo phiếu nhập" : "Tạo mới"}</button>}</div>
-        {isReceipts || isIssues ? <><div className="workspace-filters">{["Tất cả", "Đang xử lý", "Đã xác nhận", "Đã hủy"].map(filter => <button key={filter} className={statusFilter === filter ? "workspace-filter-active" : ""} onClick={() => { setStatusFilter(filter); setShowAll(true); }}>{filter}{filter === "Tất cả" ? <span> {rows.length}</span> : null}</button>)}<label><Search size={15}/><input placeholder="Tìm mã phiếu, người nhận..." value={searchText} onChange={e => { setSearchText(e.target.value); setShowAll(true); }}/></label></div><div className="simple-table-wrap"><table className="simple-table"><thead><tr><th>MÃ PHIẾU</th><th>{isReceipts ? "NHÀ CUNG CẤP" : "NGƯỜI NHẬN"}</th><th>NGÀY TẠO</th><th>SẢN PHẨM</th><th>TRẠNG THÁI</th><th/></tr></thead><tbody>{shownRows.map(row => <tr key={row[0]} className="clickable-row" onClick={() => setSelectedDoc(row)}>{row.map((cell, i) => <td key={i}>{i === 4 ? <span className={`doc-status ${cell === "Bản nháp" ? "draft" : cell === "Đã xác nhận" ? "confirmed" : cell === "Đã hủy" ? "cancelled" : "pending"}`}>{cell}</span> : cell}</td>)}<td><button className="row-more" aria-label={`Xem phiếu ${row[0]}`} onClick={() => setSelectedDoc(row)}><ArrowRight size={16}/></button></td></tr>)}</tbody></table>{shownRows.length === 0 && <div className="empty-state">Không tìm thấy phiếu phù hợp.</div>}</div><div className="workspace-bottom">Hiển thị <b>{shownRows.length}</b> / {filteredRows.length} phiếu<button onClick={() => setShowAll(value => !value)}>{showAll ? "Thu gọn" : "Xem tất cả"} <ArrowRight size={14}/></button></div></>
-        : isShipping ? <div className="shipment-grid">{[["Đang giao", "08", "Tài xế đã nhận hàng", "shipping"], ["Chờ lấy hàng", "04", "Đơn đã sẵn sàng", "waiting"], ["Đã hoàn tất", "126", "Giao thành công tháng này", "complete"]].map(([label, count, hint, tone]) => <article className="shipment-card shipment-clickable" key={label} onClick={() => { setShipmentFilter(label); setShowShipments(true); }}><span className={`shipment-mark ${tone}`}><Truck size={17}/></span><small>{label}</small><b>{count}<em> đơn</em></b><span>{hint}</span><button onClick={e => { e.stopPropagation(); setShipmentFilter(label); setShowShipments(true); }}>Quản lý đơn <ArrowRight size={14}/></button></article>)}</div>
-        : isHistory ? <div className="activity-list">{[["Xác nhận phiếu nhập PN-20261021-001", "Minh Anh · 10:42 hôm nay", "+ 18 sản phẩm"], ["Cập nhật trạng thái giao hàng GH-20261020-012", "Minh Anh · 09:18 hôm nay", "Đang giao"], ["Tạo phiếu xuất PX-20261020-021", "Minh Anh · Hôm qua, 16:35", "11 sản phẩm"], ["Điều chỉnh tồn kho · Đèn bàn Lumio Mini", "Minh Anh · Hôm qua, 14:02", "4 → 12 cái"]].map((entry, i) => <article key={entry[0]}><span className={`activity-dot dot-${i}`}/><div><b>{entry[0]}</b><small>{entry[1]}</small></div><span>{entry[2]}</span></article>)}</div>
-        : active === "Báo cáo" ? <div className="report-view"><div className="report-summary"><article><small>HÀNG NHẬP</small><b>486 <em>sản phẩm</em></b><span>↑ 12,4% so với tháng trước</span></article><article><small>HÀNG XUẤT</small><b>392 <em>sản phẩm</em></b><span>↑ 8,1% so với tháng trước</span></article><article><small>TỶ LỆ ĐÁP ỨNG</small><b>96,8<em>%</em></b><span>Kho vận hành ổn định</span></article></div><div className="report-chart"><div><b>Luồng hàng hóa</b><span>30 ngày gần nhất</span></div><div className="report-bars">{[48,67,56,82,61,73,91,60,77,52,86,68,96,71,88,58,76,93,64,81,70,100,75,87].map((n,i)=><i key={i} style={{height:`${n}%`}}/>)}</div><div className="report-axis"><span>01 Th10</span><span>08 Th10</span><span>15 Th10</span><span>21 Th10</span></div></div></div>
-        : <div className="settings-grid"><article><b>Thông tin kho</b><p>Tên kho, địa chỉ và thông tin liên hệ.</p><button onClick={onCreate}>Chỉnh sửa <ArrowRight size={14}/></button></article><article><b>Cảnh báo tồn kho</b><p>Nhận thông báo khi sản phẩm chạm mức tồn tối thiểu.</p><button className="toggle-on" aria-label="Bật cảnh báo"><i/></button></article><article><b>Đơn vị tính</b><p>Quản lý đơn vị mặc định cho hàng hóa.</p><button onClick={onCreate}>Cấu hình <ArrowRight size={14}/></button></article><article><b>Hồ sơ cá nhân</b><p>Minh Anh · Chủ kho</p><button onClick={onCreate}>Cập nhật hồ sơ <ArrowRight size={14}/></button></article></div>}
-        {selectedDoc && <div className="detail-backdrop" onClick={() => setSelectedDoc(null)}><section className="detail-dialog" onClick={e => e.stopPropagation()}><button className="detail-close" onClick={() => setSelectedDoc(null)} aria-label="Đóng"><X size={18}/></button><div className="panel-kicker">{isReceipts ? "CHI TIẾT PHIẾU NHẬP" : "CHI TIẾT PHIẾU XUẤT"}</div><h2>{selectedDoc[0]}</h2><p className="detail-subtitle">Tạo ngày {selectedDoc[2]} · Người tạo: Minh Anh</p><div className="detail-summary"><span>{isReceipts ? "Nhà cung cấp" : "Người nhận"}<b>{selectedDoc[1]}</b></span><span>Trạng thái<b>{docStatuses[selectedDoc[0]] ?? selectedDoc[4]}</b></span><span>Tổng mặt hàng<b>{selectedDoc[3]}</b></span></div><h3>Danh sách hàng hóa</h3><div className="detail-product-row"><span className="product-thumb violet">AB</span><span><b>Tai nghe không dây AirBeat Pro</b><small>EL-2048 · 2 cái</small></span><strong>{isReceipts ? "2.580.000₫" : "2 cái"}</strong></div><div className="detail-product-row"><span className="product-thumb mint">Lu</span><span><b>Bình giữ nhiệt Luma 650ml</b><small>HH-0812 · 3 cái</small></span><strong>{isReceipts ? "1.155.000₫" : "3 cái"}</strong></div><div className="detail-total"><span>{isReceipts ? "Tổng giá trị dự kiến" : "Địa chỉ giao hàng"}</span><b>{isReceipts ? "3.735.000₫" : "28 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh"}</b></div><div className="detail-actions"><button className="button-quiet" onClick={() => setSelectedDoc(null)}>Đóng</button>{!isReceipts && (docStatuses[selectedDoc[0]] ?? selectedDoc[4]) === "Đã xác nhận" && <button className="button-quiet" onClick={() => { setSelectedShipment("GH-20261021-019"); setSelectedDoc(null); }}>Tạo đơn giao <Truck size={15}/></button>}{(docStatuses[selectedDoc[0]] ?? selectedDoc[4]) !== "Đã xác nhận" && (docStatuses[selectedDoc[0]] ?? selectedDoc[4]) !== "Đã hủy" && <button className="button-primary" onClick={() => { const next = [...selectedDoc.slice(0, 4), "Đã xác nhận"]; setDocStatuses(value => ({ ...value, [selectedDoc[0]]: "Đã xác nhận" })); setSelectedDoc(next); }}>{isReceipts ? "Xác nhận nhập kho" : "Xác nhận xuất kho"} <ArrowRight size={15}/></button>}</div></section></div>}
-        {showShipments && <div className="detail-backdrop" onClick={() => setShowShipments(false)}><section className="detail-dialog shipment-dialog" onClick={e => e.stopPropagation()}><button className="detail-close" onClick={() => setShowShipments(false)} aria-label="Đóng"><X size={18}/></button><div className="panel-kicker">DANH SÁCH ĐƠN GIAO</div><h2>{shipmentFilter}</h2><p className="detail-subtitle">Chọn một đơn để xem thông tin giao hàng và cập nhật tiến độ.</p>{shipmentRows.filter(row => shipmentFilter === "Tất cả" || (shipmentFilter === "Đang giao" && shipmentStates[row[0]] === "SHIPPING") || (shipmentFilter === "Chờ lấy hàng" && shipmentStates[row[0]] === "PENDING") || (shipmentFilter === "Đã hoàn tất" && shipmentStates[row[0]] === "COMPLETED")).map(row => <button className="shipment-list-row" key={row[0]} onClick={() => { setSelectedShipment(row[0]); setShowShipments(false); }}><span><b>{row[0]}</b><small>{row[1]} · {row[2]}</small></span><span className={`shipment-status status-${(shipmentStates[row[0]] ?? "PENDING").toLowerCase()}`}>{shipmentStatusLabel(shipmentStates[row[0]] ?? "PENDING")}</span><ArrowRight size={16}/></button>)}<div className="detail-actions"><button className="button-quiet" onClick={() => setShowShipments(false)}>Đóng</button></div></section></div>}
-        {selectedShipment && <div className="detail-backdrop" onClick={() => setSelectedShipment(null)}><section className="detail-dialog" onClick={e => e.stopPropagation()}><button className="detail-close" onClick={() => setSelectedShipment(null)} aria-label="Đóng"><X size={18}/></button><div className="panel-kicker">THÔNG TIN GIAO HÀNG</div><h2>{selectedShipment}</h2><p className="detail-subtitle">Phiếu xuất PX-20261021-008 · Tạo ngày 21/10/2026</p><div className="shipment-detail-top"><span className="shipment-mark shipping"><Truck size={18}/></span><span>Trạng thái hiện tại<b>{shipmentStatusLabel(shipmentStates[selectedShipment] ?? "PENDING")}</b></span></div><div className="shipment-info-grid"><span>Người nhận<b>{shipmentRows.find(row => row[0] === selectedShipment)?.[2]}</b></span><span>Số điện thoại<b>090 123 4567</b></span><span>Tài xế<b>{shipmentRows.find(row => row[0] === selectedShipment)?.[1]}</b></span><span>Địa chỉ giao<b>28 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh</b></span></div><div className="shipment-timeline"><b>Lịch sử trạng thái</b><p><i/> Đơn được tạo <small>21/10/2026 · 08:30</small></p>{["SHIPPING", "COMPLETED"].includes(shipmentStates[selectedShipment] ?? "") && <p><i/> Tài xế đã nhận hàng <small>21/10/2026 · 09:15</small></p>}{shipmentStates[selectedShipment] === "COMPLETED" && <p><i/> Đã giao thành công <small>21/10/2026 · 11:20</small></p>}{shipmentStates[selectedShipment] === "CANCELLED" && <p><i/> Đơn giao đã hủy <small>21/10/2026 · 11:20</small></p>}</div><div className="detail-actions"><button className="button-quiet" onClick={() => setSelectedShipment(null)}>Đóng</button>{shipmentStates[selectedShipment] === "PENDING" && <button className="button-primary" onClick={() => setShipmentStates(value => ({ ...value, [selectedShipment]: "SHIPPING" }))}>Bắt đầu giao hàng <ArrowRight size={15}/></button>}{shipmentStates[selectedShipment] === "SHIPPING" && <><button className="button-quiet danger-action" onClick={() => setShipmentStates(value => ({ ...value, [selectedShipment]: "CANCELLED" }))}>Hủy đơn</button><button className="button-primary" onClick={() => setShipmentStates(value => ({ ...value, [selectedShipment]: "COMPLETED" }))}>Đánh dấu đã giao <ArrowRight size={15}/></button></>}</div></section></div>}
-    </section>;
+    const shipmentStatusLabel = (code: string) =>
+        ({
+            PENDING: "Chờ lấy hàng",
+            SHIPPING: "Đang giao",
+            COMPLETED: "Đã hoàn tất",
+            CANCELLED: "Đã hủy",
+        })[code] ?? code;
+    const title = isReceipts
+        ? "Phiếu nhập kho"
+        : isIssues
+          ? "Phiếu xuất kho"
+          : isShipping
+            ? "Theo dõi vận chuyển"
+            : isHistory
+              ? "Lịch sử hoạt động"
+              : active;
+    const description = isReceipts
+        ? "Theo dõi hàng hóa nhập về và cập nhật tồn kho."
+        : isIssues
+          ? "Quản lý yêu cầu xuất hàng và kiểm tra số lượng trước khi xác nhận."
+          : isShipping
+            ? "Nắm trạng thái giao hàng và tiến độ của từng tài xế."
+            : isHistory
+              ? "Xem lại các thay đổi trong hoạt động kho."
+              : active === "Báo cáo"
+                ? "Tổng hợp hiệu suất nhập xuất và biến động hàng tồn."
+                : "Tùy chỉnh không gian làm việc theo cách bạn vận hành.";
+    return (
+        <section className="workspace-panel">
+            <div className="workspace-panel-head">
+                <div>
+                    <div className="panel-kicker">KHÔNG GIAN VẬN HÀNH</div>
+                    <h2>{title}</h2>
+                    <p>{description}</p>
+                </div>
+                {!isHistory && (
+                    <button className="button-primary" onClick={onCreate}>
+                        <Plus size={16} />
+                        {isIssues
+                            ? "Tạo phiếu xuất"
+                            : isShipping
+                              ? "Tạo đơn giao"
+                              : isReceipts
+                                ? "Tạo phiếu nhập"
+                                : "Tạo mới"}
+                    </button>
+                )}
+            </div>
+            {isReceipts || isIssues ? (
+                <>
+                    <div className="workspace-filters">
+                        {["Tất cả", "Đang xử lý", "Đã xác nhận", "Đã hủy"].map(
+                            (filter) => (
+                                <button
+                                    key={filter}
+                                    className={
+                                        statusFilter === filter
+                                            ? "workspace-filter-active"
+                                            : ""
+                                    }
+                                    onClick={() => {
+                                        setStatusFilter(filter);
+                                        setShowAll(true);
+                                    }}
+                                >
+                                    {filter}
+                                    {filter === "Tất cả" ? (
+                                        <span> {rows.length}</span>
+                                    ) : null}
+                                </button>
+                            ),
+                        )}
+                        <label>
+                            <Search size={15} />
+                            <input
+                                placeholder="Tìm mã phiếu, người nhận..."
+                                value={searchText}
+                                onChange={(e) => {
+                                    setSearchText(e.target.value);
+                                    setShowAll(true);
+                                }}
+                            />
+                        </label>
+                    </div>
+                    <div className="simple-table-wrap">
+                        <table className="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>MÃ PHIẾU</th>
+                                    <th>
+                                        {isReceipts
+                                            ? "NHÀ CUNG CẤP"
+                                            : "NGƯỜI NHẬN"}
+                                    </th>
+                                    <th>NGÀY TẠO</th>
+                                    <th>SẢN PHẨM</th>
+                                    <th>TRẠNG THÁI</th>
+                                    <th />
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {shownRows.map((row) => (
+                                    <tr
+                                        key={row[0]}
+                                        className="clickable-row"
+                                        onClick={() => setSelectedDoc(row)}
+                                    >
+                                        {row.map((cell, i) => (
+                                            <td key={i}>
+                                                {i === 4 ? (
+                                                    <span
+                                                        className={`doc-status ${cell === "Bản nháp" ? "draft" : cell === "Đã xác nhận" ? "confirmed" : cell === "Đã hủy" ? "cancelled" : "pending"}`}
+                                                    >
+                                                        {cell}
+                                                    </span>
+                                                ) : (
+                                                    cell
+                                                )}
+                                            </td>
+                                        ))}
+                                        <td>
+                                            <button
+                                                className="row-more"
+                                                aria-label={`Xem phiếu ${row[0]}`}
+                                                onClick={() =>
+                                                    setSelectedDoc(row)
+                                                }
+                                            >
+                                                <ArrowRight size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {shownRows.length === 0 && (
+                            <div className="empty-state">
+                                Không tìm thấy phiếu phù hợp.
+                            </div>
+                        )}
+                    </div>
+                    <div className="workspace-bottom">
+                        Hiển thị <b>{shownRows.length}</b> /{" "}
+                        {filteredRows.length} phiếu
+                        <button onClick={() => setShowAll((value) => !value)}>
+                            {showAll ? "Thu gọn" : "Xem tất cả"}{" "}
+                            <ArrowRight size={14} />
+                        </button>
+                    </div>
+                </>
+            ) : isShipping ? (
+                <div className="shipment-grid">
+                    {[
+                        ["Đang giao", "08", "Tài xế đã nhận hàng", "shipping"],
+                        ["Chờ lấy hàng", "04", "Đơn đã sẵn sàng", "waiting"],
+                        [
+                            "Đã hoàn tất",
+                            "126",
+                            "Giao thành công tháng này",
+                            "complete",
+                        ],
+                    ].map(([label, count, hint, tone]) => (
+                        <article
+                            className="shipment-card shipment-clickable"
+                            key={label}
+                            onClick={() => {
+                                setShipmentFilter(label);
+                                setShowShipments(true);
+                            }}
+                        >
+                            <span className={`shipment-mark ${tone}`}>
+                                <Truck size={17} />
+                            </span>
+                            <small>{label}</small>
+                            <b>
+                                {count}
+                                <em> đơn</em>
+                            </b>
+                            <span>{hint}</span>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShipmentFilter(label);
+                                    setShowShipments(true);
+                                }}
+                            >
+                                Quản lý đơn <ArrowRight size={14} />
+                            </button>
+                        </article>
+                    ))}
+                </div>
+            ) : isHistory ? (
+                <div className="activity-list">
+                    {[
+                        [
+                            "Xác nhận phiếu nhập PN-20261021-001",
+                            "Minh Anh · 10:42 hôm nay",
+                            "+ 18 sản phẩm",
+                        ],
+                        [
+                            "Cập nhật trạng thái giao hàng GH-20261020-012",
+                            "Minh Anh · 09:18 hôm nay",
+                            "Đang giao",
+                        ],
+                        [
+                            "Tạo phiếu xuất PX-20261020-021",
+                            "Minh Anh · Hôm qua, 16:35",
+                            "11 sản phẩm",
+                        ],
+                        [
+                            "Điều chỉnh tồn kho · Đèn bàn Lumio Mini",
+                            "Minh Anh · Hôm qua, 14:02",
+                            "4 → 12 cái",
+                        ],
+                    ].map((entry, i) => (
+                        <article key={entry[0]}>
+                            <span className={`activity-dot dot-${i}`} />
+                            <div>
+                                <b>{entry[0]}</b>
+                                <small>{entry[1]}</small>
+                            </div>
+                            <span>{entry[2]}</span>
+                        </article>
+                    ))}
+                </div>
+            ) : active === "Báo cáo" ? (
+                <div className="report-view">
+                    <div className="report-summary">
+                        <article>
+                            <small>HÀNG NHẬP</small>
+                            <b>
+                                486 <em>sản phẩm</em>
+                            </b>
+                            <span>↑ 12,4% so với tháng trước</span>
+                        </article>
+                        <article>
+                            <small>HÀNG XUẤT</small>
+                            <b>
+                                392 <em>sản phẩm</em>
+                            </b>
+                            <span>↑ 8,1% so với tháng trước</span>
+                        </article>
+                        <article>
+                            <small>TỶ LỆ ĐÁP ỨNG</small>
+                            <b>
+                                96,8<em>%</em>
+                            </b>
+                            <span>Kho vận hành ổn định</span>
+                        </article>
+                    </div>
+                    <div className="report-chart">
+                        <div>
+                            <b>Luồng hàng hóa</b>
+                            <span>30 ngày gần nhất</span>
+                        </div>
+                        <div className="report-bars">
+                            {[
+                                48, 67, 56, 82, 61, 73, 91, 60, 77, 52, 86, 68,
+                                96, 71, 88, 58, 76, 93, 64, 81, 70, 100, 75, 87,
+                            ].map((n, i) => (
+                                <i key={i} style={{ height: `${n}%` }} />
+                            ))}
+                        </div>
+                        <div className="report-axis">
+                            <span>01 Th10</span>
+                            <span>08 Th10</span>
+                            <span>15 Th10</span>
+                            <span>21 Th10</span>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="settings-grid">
+                    <article>
+                        <b>Thông tin kho</b>
+                        <p>Tên kho, địa chỉ và thông tin liên hệ.</p>
+                        <button onClick={onCreate}>
+                            Chỉnh sửa <ArrowRight size={14} />
+                        </button>
+                    </article>
+                    <article>
+                        <b>Cảnh báo tồn kho</b>
+                        <p>
+                            Nhận thông báo khi sản phẩm chạm mức tồn tối thiểu.
+                        </p>
+                        <button className="toggle-on" aria-label="Bật cảnh báo">
+                            <i />
+                        </button>
+                    </article>
+                    <article>
+                        <b>Đơn vị tính</b>
+                        <p>Quản lý đơn vị mặc định cho hàng hóa.</p>
+                        <button onClick={onCreate}>
+                            Cấu hình <ArrowRight size={14} />
+                        </button>
+                    </article>
+                    <article>
+                        <b>Hồ sơ cá nhân</b>
+                        <p>Minh Anh · Chủ kho</p>
+                        <button onClick={onCreate}>
+                            Cập nhật hồ sơ <ArrowRight size={14} />
+                        </button>
+                    </article>
+                </div>
+            )}
+            {selectedDoc && (
+                <div
+                    className="detail-backdrop"
+                    onClick={() => setSelectedDoc(null)}
+                >
+                    <section
+                        className="detail-dialog"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="detail-close"
+                            onClick={() => setSelectedDoc(null)}
+                            aria-label="Đóng"
+                        >
+                            <X size={18} />
+                        </button>
+                        <div className="panel-kicker">
+                            {isReceipts
+                                ? "CHI TIẾT PHIẾU NHẬP"
+                                : "CHI TIẾT PHIẾU XUẤT"}
+                        </div>
+                        <h2>{selectedDoc[0]}</h2>
+                        <p className="detail-subtitle">
+                            Tạo ngày {selectedDoc[2]} · Người tạo: Minh Anh
+                        </p>
+                        <div className="detail-summary">
+                            <span>
+                                {isReceipts ? "Nhà cung cấp" : "Người nhận"}
+                                <b>{selectedDoc[1]}</b>
+                            </span>
+                            <span>
+                                Trạng thái
+                                <b>
+                                    {docStatuses[selectedDoc[0]] ??
+                                        selectedDoc[4]}
+                                </b>
+                            </span>
+                            <span>
+                                Tổng mặt hàng<b>{selectedDoc[3]}</b>
+                            </span>
+                        </div>
+                        <h3>Danh sách hàng hóa</h3>
+                        <div className="detail-product-row">
+                            <span className="product-thumb violet">AB</span>
+                            <span>
+                                <b>Tai nghe không dây AirBeat Pro</b>
+                                <small>EL-2048 · 2 cái</small>
+                            </span>
+                            <strong>
+                                {isReceipts ? "2.580.000₫" : "2 cái"}
+                            </strong>
+                        </div>
+                        <div className="detail-product-row">
+                            <span className="product-thumb mint">Lu</span>
+                            <span>
+                                <b>Bình giữ nhiệt Luma 650ml</b>
+                                <small>HH-0812 · 3 cái</small>
+                            </span>
+                            <strong>
+                                {isReceipts ? "1.155.000₫" : "3 cái"}
+                            </strong>
+                        </div>
+                        <div className="detail-total">
+                            <span>
+                                {isReceipts
+                                    ? "Tổng giá trị dự kiến"
+                                    : "Địa chỉ giao hàng"}
+                            </span>
+                            <b>
+                                {isReceipts
+                                    ? "3.735.000₫"
+                                    : "28 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh"}
+                            </b>
+                        </div>
+                        <div className="detail-actions">
+                            <button
+                                className="button-quiet"
+                                onClick={() => setSelectedDoc(null)}
+                            >
+                                Đóng
+                            </button>
+                            {!isReceipts &&
+                                (docStatuses[selectedDoc[0]] ??
+                                    selectedDoc[4]) === "Đã xác nhận" && (
+                                    <button
+                                        className="button-quiet"
+                                        onClick={() => {
+                                            setSelectedShipment(
+                                                "GH-20261021-019",
+                                            );
+                                            setSelectedDoc(null);
+                                        }}
+                                    >
+                                        Tạo đơn giao <Truck size={15} />
+                                    </button>
+                                )}
+                            {(docStatuses[selectedDoc[0]] ?? selectedDoc[4]) !==
+                                "Đã xác nhận" &&
+                                (docStatuses[selectedDoc[0]] ??
+                                    selectedDoc[4]) !== "Đã hủy" && (
+                                    <button
+                                        className="button-primary"
+                                        onClick={() => {
+                                            const next = [
+                                                ...selectedDoc.slice(0, 4),
+                                                "Đã xác nhận",
+                                            ];
+                                            setDocStatuses((value) => ({
+                                                ...value,
+                                                [selectedDoc[0]]: "Đã xác nhận",
+                                            }));
+                                            setSelectedDoc(next);
+                                        }}
+                                    >
+                                        {isReceipts
+                                            ? "Xác nhận nhập kho"
+                                            : "Xác nhận xuất kho"}{" "}
+                                        <ArrowRight size={15} />
+                                    </button>
+                                )}
+                        </div>
+                    </section>
+                </div>
+            )}
+            {showShipments && (
+                <div
+                    className="detail-backdrop"
+                    onClick={() => setShowShipments(false)}
+                >
+                    <section
+                        className="detail-dialog shipment-dialog"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="detail-close"
+                            onClick={() => setShowShipments(false)}
+                            aria-label="Đóng"
+                        >
+                            <X size={18} />
+                        </button>
+                        <div className="panel-kicker">DANH SÁCH ĐƠN GIAO</div>
+                        <h2>{shipmentFilter}</h2>
+                        <p className="detail-subtitle">
+                            Chọn một đơn để xem thông tin giao hàng và cập nhật
+                            tiến độ.
+                        </p>
+                        {shipmentRows
+                            .filter(
+                                (row) =>
+                                    shipmentFilter === "Tất cả" ||
+                                    (shipmentFilter === "Đang giao" &&
+                                        shipmentStates[row[0]] ===
+                                            "SHIPPING") ||
+                                    (shipmentFilter === "Chờ lấy hàng" &&
+                                        shipmentStates[row[0]] === "PENDING") ||
+                                    (shipmentFilter === "Đã hoàn tất" &&
+                                        shipmentStates[row[0]] === "COMPLETED"),
+                            )
+                            .map((row) => (
+                                <button
+                                    className="shipment-list-row"
+                                    key={row[0]}
+                                    onClick={() => {
+                                        setSelectedShipment(row[0]);
+                                        setShowShipments(false);
+                                    }}
+                                >
+                                    <span>
+                                        <b>{row[0]}</b>
+                                        <small>
+                                            {row[1]} · {row[2]}
+                                        </small>
+                                    </span>
+                                    <span
+                                        className={`shipment-status status-${(shipmentStates[row[0]] ?? "PENDING").toLowerCase()}`}
+                                    >
+                                        {shipmentStatusLabel(
+                                            shipmentStates[row[0]] ?? "PENDING",
+                                        )}
+                                    </span>
+                                    <ArrowRight size={16} />
+                                </button>
+                            ))}
+                        <div className="detail-actions">
+                            <button
+                                className="button-quiet"
+                                onClick={() => setShowShipments(false)}
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            )}
+            {selectedShipment && (
+                <div
+                    className="detail-backdrop"
+                    onClick={() => setSelectedShipment(null)}
+                >
+                    <section
+                        className="detail-dialog"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="detail-close"
+                            onClick={() => setSelectedShipment(null)}
+                            aria-label="Đóng"
+                        >
+                            <X size={18} />
+                        </button>
+                        <div className="panel-kicker">THÔNG TIN GIAO HÀNG</div>
+                        <h2>{selectedShipment}</h2>
+                        <p className="detail-subtitle">
+                            Phiếu xuất PX-20261021-008 · Tạo ngày 21/10/2026
+                        </p>
+                        <div className="shipment-detail-top">
+                            <span className="shipment-mark shipping">
+                                <Truck size={18} />
+                            </span>
+                            <span>
+                                Trạng thái hiện tại
+                                <b>
+                                    {shipmentStatusLabel(
+                                        shipmentStates[selectedShipment] ??
+                                            "PENDING",
+                                    )}
+                                </b>
+                            </span>
+                        </div>
+                        <div className="shipment-info-grid">
+                            <span>
+                                Người nhận
+                                <b>
+                                    {
+                                        shipmentRows.find(
+                                            (row) =>
+                                                row[0] === selectedShipment,
+                                        )?.[2]
+                                    }
+                                </b>
+                            </span>
+                            <span>
+                                Số điện thoại<b>090 123 4567</b>
+                            </span>
+                            <span>
+                                Tài xế
+                                <b>
+                                    {
+                                        shipmentRows.find(
+                                            (row) =>
+                                                row[0] === selectedShipment,
+                                        )?.[1]
+                                    }
+                                </b>
+                            </span>
+                            <span>
+                                Địa chỉ giao
+                                <b>28 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh</b>
+                            </span>
+                        </div>
+                        <div className="shipment-timeline">
+                            <b>Lịch sử trạng thái</b>
+                            <p>
+                                <i /> Đơn được tạo{" "}
+                                <small>21/10/2026 · 08:30</small>
+                            </p>
+                            {["SHIPPING", "COMPLETED"].includes(
+                                shipmentStates[selectedShipment] ?? "",
+                            ) && (
+                                <p>
+                                    <i /> Tài xế đã nhận hàng{" "}
+                                    <small>21/10/2026 · 09:15</small>
+                                </p>
+                            )}
+                            {shipmentStates[selectedShipment] ===
+                                "COMPLETED" && (
+                                <p>
+                                    <i /> Đã giao thành công{" "}
+                                    <small>21/10/2026 · 11:20</small>
+                                </p>
+                            )}
+                            {shipmentStates[selectedShipment] ===
+                                "CANCELLED" && (
+                                <p>
+                                    <i /> Đơn giao đã hủy{" "}
+                                    <small>21/10/2026 · 11:20</small>
+                                </p>
+                            )}
+                        </div>
+                        <div className="detail-actions">
+                            <button
+                                className="button-quiet"
+                                onClick={() => setSelectedShipment(null)}
+                            >
+                                Đóng
+                            </button>
+                            {shipmentStates[selectedShipment] === "PENDING" && (
+                                <button
+                                    className="button-primary"
+                                    onClick={() =>
+                                        setShipmentStates((value) => ({
+                                            ...value,
+                                            [selectedShipment]: "SHIPPING",
+                                        }))
+                                    }
+                                >
+                                    Bắt đầu giao hàng <ArrowRight size={15} />
+                                </button>
+                            )}
+                            {shipmentStates[selectedShipment] ===
+                                "SHIPPING" && (
+                                <>
+                                    <button
+                                        className="button-quiet danger-action"
+                                        onClick={() =>
+                                            setShipmentStates((value) => ({
+                                                ...value,
+                                                [selectedShipment]: "CANCELLED",
+                                            }))
+                                        }
+                                    >
+                                        Hủy đơn
+                                    </button>
+                                    <button
+                                        className="button-primary"
+                                        onClick={() =>
+                                            setShipmentStates((value) => ({
+                                                ...value,
+                                                [selectedShipment]: "COMPLETED",
+                                            }))
+                                        }
+                                    >
+                                        Đánh dấu đã giao{" "}
+                                        <ArrowRight size={15} />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            )}
+        </section>
+    );
 }
 
 export default WorkspaceSection;
