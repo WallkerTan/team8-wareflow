@@ -1,10 +1,15 @@
+import React from "react";
 import { Outlet } from "react-router-dom";
 import "../page/au/auth.css";
 
-const AuthLayout = () => {
+interface AuthLayoutProps {
+    children?: React.ReactNode;
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     return (
         <main className="auth-screen">
-            <Outlet />
+            {children || <Outlet />}
         </main>
     );
 };

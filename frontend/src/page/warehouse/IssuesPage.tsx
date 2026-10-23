@@ -1,28 +1,928 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
-import WorkspaceSection from "../../components/WorkspaceSection/WorkspaceSection";
-import CreateModal from "../../components/CreateModal/CreateModal";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import {
+    ArrowUpRight,
+    Plus,
+    CheckCircle2,
+    XCircle,
+    Eye,
+    Edit2,
+    Trash2,
+    RefreshCw,
+    Loader2,
+    User,
+    AlertCircle,
+    Phone,
+    MapPin,
+} from "lucide-react";
+import { Modal, Popconfirm } from "antd";
+import { issueService } from "../../api/services/issueService";
+import type { IssueFilterParams } from "../../api/services/issueService";
+import { productService } from "../../api/services/productService";
+import type {
+    DocumentStatus,
+    IssueItemRequest,
+    IssueRequest,
+    IssueResponse,
+    ProductResponse,
+} from "../../types";
+import { getErrorMessage } from "../../api/client";
+import { formatCurrency, formatDate } from "../../api/formatters";
 
 export default function IssuesPage() {
-    const [showModal, setShowModal] = useState(false);
+    const [issues, setIssues] = useState<IssueResponse[]>([]);
+    const [availableProducts, setAvailableProducts] = useState<ProductResponse[]>([]);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [page, setPage] = useState(0);
+    const [size] = useState(10);
+    const [statusFilter, setStatusFilter] = useState<DocumentStatus | "ALL">("ALL");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    // Modal Create / Edit
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingIssueId, setEditingIssueId] = useState<number | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Form fields
+    const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
+    const [receiverName, setReceiverName] = useState("");
+    const [receiverPhone, setReceiverPhone] = useState("");
+    const [receiverAddress, setReceiverAddress] = useState("");
+    const [note, setNote] = useState("");
+    const [items, setItems] = useState<IssueItemRequest[]>([
+        { productId: 0, quantity: 1, unitPrice: 0 },
+    ]);
+
+    // Modal Detail
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
+
+    const loadProducts = async () => {
+        try {
+            const res = await productService.getProducts({ size: 100 });
+            setAvailableProducts(res.content);
+        } catch {
+            // ignore
+        }
+    };
+
+    const loadIssues = async (targetPage = page) => {
+        setLoading(true);
+        try {
+            const params: IssueFilterParams = {
+                page: targetPage,
+                size,
+                status: statusFilter === "ALL" ? undefined : statusFilter,
+                fromDate: fromDate || undefined,
+                toDate: toDate || undefined,
+            };
+            const res = await issueService.getIssues(params);
+            setIssues(res.content);
+            setTotalElements(res.totalElements);
+            setTotalPages(res.totalPages);
+            setPage(res.page);
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Không thể tải danh sách phiếu xuất"));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadProducts();
+    }, []);
+
+    useEffect(() => {
+        loadIssues(0);
+    }, [statusFilter, fromDate, toDate, size]);
+
+    // Dynamic Items form handlers
+    const addItemRow = () => {
+        setItems([...items, { productId: availableProducts[0]?.id || 0, quantity: 1, unitPrice: 0 }]);
+    };
+
+    const removeItemRow = (index: number) => {
+        if (items.length <= 1) {
+            toast.error("Phiếu xuất phải có ít nhất 1 mặt hàng");
+            return;
+        }
+        setItems(items.filter((_, i) => i !== index));
+    };
+
+    const updateItem = (index: number, field: keyof IssueItemRequest, value: unknown) => {
+        const next = [...items];
+        next[index] = { ...next[index], [field]: value };
+        if (field === "productId") {
+            const p = availableProducts.find((prod) => prod.id === Number(value));
+            if (p && p.price) {
+                next[index].unitPrice = p.price;
+            }
+        }
+        setItems(next);
+    };
+
+    const resetForm = () => {
+        setIssueDate(new Date().toISOString().split("T")[0]);
+        setReceiverName("");
+        setReceiverPhone("");
+        setReceiverAddress("");
+        setNote("");
+        setItems([
+            {
+                productId: availableProducts[0]?.id || 0,
+                quantity: 1,
+                unitPrice: availableProducts[0]?.price || 0,
+            },
+        ]);
+    };
+
+    const handleOpenCreate = () => {
+        resetForm();
+        setIsCreateOpen(true);
+    };
+
+    const handleCreateIssue = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!receiverName.trim()) {
+            toast.error("Vui lòng nhập tên người nhận hàng");
+            return;
+        }
+        const validItems = items.filter((it) => it.productId > 0 && it.quantity > 0);
+        if (validItems.length === 0) {
+            toast.error("Vui lòng nhập hợp lệ ít nhất 1 sản phẩm có số lượng > 0");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const payload: IssueRequest = {
+                issueDate: issueDate || undefined,
+                receiverName: receiverName.trim(),
+                receiverPhone: receiverPhone.trim() || undefined,
+                receiverAddress: receiverAddress.trim() || undefined,
+                note: note.trim() || undefined,
+                items: validItems.map((it) => ({
+                    productId: it.productId,
+                    quantity: Number(it.quantity),
+                    unitPrice: it.unitPrice ? Number(it.unitPrice) : undefined,
+                })),
+            };
+            await issueService.createIssue(payload);
+            toast.success("Tạo phiếu xuất nháp (DRAFT) thành công!");
+            setIsCreateOpen(false);
+            loadIssues(0);
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Tạo phiếu xuất thất bại"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const openEditModal = (iss: IssueResponse) => {
+        setEditingIssueId(iss.id);
+        setIssueDate(iss.issueDate || new Date().toISOString().split("T")[0]);
+        setReceiverName(iss.receiverName);
+        setReceiverPhone(iss.receiverPhone || "");
+        setReceiverAddress(iss.receiverAddress || "");
+        setNote(iss.note || "");
+        setItems(
+            iss.items.map((it) => ({
+                productId: it.productId,
+                quantity: it.quantity,
+                unitPrice: it.unitPrice,
+            }))
+        );
+        setIsEditOpen(true);
+    };
+
+    const handleUpdateIssue = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingIssueId || !receiverName.trim()) return;
+        const validItems = items.filter((it) => it.productId > 0 && it.quantity > 0);
+        if (validItems.length === 0) {
+            toast.error("Vui lòng nhập hợp lệ ít nhất 1 sản phẩm");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const payload: IssueRequest = {
+                issueDate: issueDate || undefined,
+                receiverName: receiverName.trim(),
+                receiverPhone: receiverPhone.trim() || undefined,
+                receiverAddress: receiverAddress.trim() || undefined,
+                note: note.trim() || undefined,
+                items: validItems.map((it) => ({
+                    productId: it.productId,
+                    quantity: Number(it.quantity),
+                    unitPrice: it.unitPrice ? Number(it.unitPrice) : undefined,
+                })),
+            };
+            await issueService.updateIssue(editingIssueId, payload);
+            toast.success("Cập nhật phiếu xuất thành công!");
+            setIsEditOpen(false);
+            loadIssues();
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Cập nhật phiếu xuất thất bại"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDeleteIssue = async (id: number) => {
+        try {
+            await issueService.deleteIssue(id);
+            toast.success("Đã xóa phiếu xuất DRAFT!");
+            loadIssues();
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Xóa phiếu xuất thất bại"));
+        }
+    };
+
+    const handleConfirmIssue = async (id: number) => {
+        try {
+            await issueService.confirmIssue(id);
+            toast.success("Xác nhận xuất kho thành công! Đã tự động trừ tồn kho.");
+            loadIssues();
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Không thể xác nhận xuất kho"));
+        }
+    };
+
+    const handleCancelIssue = async (id: number) => {
+        try {
+            await issueService.cancelIssue(id);
+            toast.success("Đã hủy phiếu xuất kho!");
+            loadIssues();
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Hủy phiếu xuất thất bại"));
+        }
+    };
+
+    const openDetailModal = async (id: number) => {
+        try {
+            const data = await issueService.getIssue(id);
+            setSelectedIssue(data);
+            setIsDetailOpen(true);
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Không thể tải chi tiết phiếu xuất"));
+        }
+    };
+
+    const calculateTotal = (issue: IssueResponse) => {
+        return issue.items.reduce((sum, it) => sum + (it.totalPrice || (it.unitPrice || 0) * it.quantity), 0);
+    };
 
     return (
-        <>
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-5">
                 <div>
-                    <div className="welcome-line">THỨ BA, 21 THÁNG 10, 2026 <span className="live-dot" /> KHO ĐANG HOẠT ĐỘNG</div>
-                    <h1>Phiếu xuất</h1>
-                    <p>Quản lý phiếu xuất và theo dõi hoạt động kho của bạn.</p>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <ArrowUpRight className="text-indigo-400" size={26} /> Quản lý Phiếu Xuất Kho
+                    </h1>
+                    <p className="text-slate-400 text-sm mt-1">
+                        Lập phiếu xuất hàng, kiểm tra lượng tồn và xác nhận điều phối giao nhận.
+                    </p>
                 </div>
-                <div className="heading-actions">
-                    <button className="button-primary" onClick={() => setShowModal(true)}>
-                        <Plus size={17} /> Tạo phiếu xuất
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => loadIssues()}
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium border border-slate-700 transition cursor-pointer"
+                    >
+                        <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+                        Làm mới
+                    </button>
+                    <button
+                        onClick={handleOpenCreate}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition shadow-lg shadow-indigo-950 cursor-pointer"
+                    >
+                        <Plus size={16} /> Tạo phiếu xuất
                     </button>
                 </div>
             </div>
 
-            <WorkspaceSection active="Phiếu xuất" onCreate={() => setShowModal(true)} />
-            <CreateModal show={showModal} onClose={() => setShowModal(false)} type="Phiếu xuất" />
-        </>
+            {/* Filter Tools */}
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between shadow-lg">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as DocumentStatus | "ALL")}
+                        className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    >
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="DRAFT">DRAFT (Bản nháp)</option>
+                        <option value="CONFIRMED">CONFIRMED (Đã xuất kho)</option>
+                        <option value="CANCELLED">CANCELLED (Đã hủy)</option>
+                    </select>
+
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <span>Từ:</span>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                        />
+                        <span>Đến:</span>
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="text-xs text-slate-400">
+                    Tổng: <strong className="text-white">{totalElements}</strong> phiếu xuất
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr className="border-b border-slate-700/80 bg-slate-900/60 text-slate-400 text-xs uppercase tracking-wider">
+                                <th className="py-3.5 px-4 font-semibold">Mã phiếu</th>
+                                <th className="py-3.5 px-4 font-semibold">Người nhận</th>
+                                <th className="py-3.5 px-4 font-semibold">Ngày xuất</th>
+                                <th className="py-3.5 px-4 font-semibold">Số mặt hàng</th>
+                                <th className="py-3.5 px-4 font-semibold">Trạng thái</th>
+                                <th className="py-3.5 px-4 font-semibold">Ghi chú</th>
+                                <th className="py-3.5 px-4 font-semibold text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700/50">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <Loader2 size={24} className="animate-spin text-indigo-400" />
+                                            <span>Đang tải danh sách phiếu xuất...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : issues.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                        <AlertCircle size={28} className="mx-auto mb-2 text-slate-500" />
+                                        <span>Không tìm thấy phiếu xuất nào.</span>
+                                    </td>
+                                </tr>
+                            ) : (
+                                issues.map((iss) => (
+                                    <tr key={iss.id} className="hover:bg-slate-700/30 transition">
+                                        <td className="py-3.5 px-4 font-mono font-bold text-indigo-400">
+                                            {iss.issueNo}
+                                        </td>
+                                        <td className="py-3.5 px-4 font-medium text-white">
+                                            <div className="flex items-center gap-2">
+                                                <User size={14} className="text-slate-400" />
+                                                <span>{iss.receiverName}</span>
+                                            </div>
+                                            {iss.receiverPhone && (
+                                                <div className="text-[11px] text-slate-400">{iss.receiverPhone}</div>
+                                            )}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-xs text-slate-300">
+                                            {formatDate(iss.issueDate)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-xs text-slate-300">
+                                            <span className="font-semibold text-white">{iss.items?.length || 0}</span> loại hàng
+                                        </td>
+                                        <td className="py-3.5 px-4">
+                                            {iss.status === "CONFIRMED" && (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                                                    <CheckCircle2 size={12} /> Đã xuất kho
+                                                </span>
+                                            )}
+                                            {iss.status === "DRAFT" && (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Bản nháp
+                                                </span>
+                                            )}
+                                            {iss.status === "CANCELLED" && (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-700 text-slate-400 border border-slate-600">
+                                                    <XCircle size={12} /> Đã hủy
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-xs text-slate-400 max-w-xs truncate">
+                                            {iss.note || "-"}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <button
+                                                    onClick={() => openDetailModal(iss.id)}
+                                                    className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                                                    title="Xem chi tiết"
+                                                >
+                                                    <Eye size={15} />
+                                                </button>
+
+                                                {iss.status === "DRAFT" && (
+                                                    <>
+                                                        <Popconfirm
+                                                            title="Xác nhận duyệt xuất kho?"
+                                                            description="Hệ thống sẽ kiểm tra tồn kho và trừ số lượng sản phẩm tương ứng."
+                                                            okText="Duyệt xuất kho"
+                                                            cancelText="Đóng"
+                                                            onConfirm={() => handleConfirmIssue(iss.id)}
+                                                        >
+                                                            <button
+                                                                className="px-2.5 py-1 rounded-lg bg-indigo-600/90 hover:bg-indigo-600 text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1 shadow-sm"
+                                                                title="Duyệt xuất kho (trừ tồn)"
+                                                            >
+                                                                <CheckCircle2 size={13} /> Duyệt
+                                                            </button>
+                                                        </Popconfirm>
+
+                                                        <button
+                                                            onClick={() => openEditModal(iss)}
+                                                            className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                                                            title="Sửa phiếu"
+                                                        >
+                                                            <Edit2 size={15} />
+                                                        </button>
+
+                                                        <Popconfirm
+                                                            title="Xác nhận hủy phiếu xuất?"
+                                                            description="Phiếu này sẽ chuyển sang trạng thái CANCELLED."
+                                                            okText="Hủy phiếu"
+                                                            cancelText="Đóng"
+                                                            okButtonProps={{ danger: true }}
+                                                            onConfirm={() => handleCancelIssue(iss.id)}
+                                                        >
+                                                            <button
+                                                                className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition cursor-pointer"
+                                                                title="Hủy phiếu"
+                                                            >
+                                                                <XCircle size={15} />
+                                                            </button>
+                                                        </Popconfirm>
+
+                                                        <Popconfirm
+                                                            title="Xác nhận xóa phiếu DRAFT?"
+                                                            description="Phiếu sẽ bị xóa vĩnh viễn khỏi hệ thống."
+                                                            okText="Xóa"
+                                                            cancelText="Hủy"
+                                                            okButtonProps={{ danger: true }}
+                                                            onConfirm={() => handleDeleteIssue(iss.id)}
+                                                        >
+                                                            <button
+                                                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition cursor-pointer"
+                                                                title="Xóa phiếu"
+                                                            >
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </Popconfirm>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="p-4 border-t border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+                    <div>
+                        Hiển thị <strong>{issues.length}</strong> / <strong>{totalElements}</strong> phiếu xuất (Trang {page + 1}/{Math.max(1, totalPages)})
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => loadIssues(page - 1)}
+                            disabled={page <= 0 || loading}
+                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                        >
+                            ← Trước
+                        </button>
+                        <span className="px-2 text-slate-300 font-semibold">{page + 1}</span>
+                        <button
+                            onClick={() => loadIssues(page + 1)}
+                            disabled={page >= totalPages - 1 || loading}
+                            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-slate-200 transition cursor-pointer"
+                        >
+                            Sau →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal Create Issue */}
+            <Modal
+                title={<span className="text-white text-lg font-bold">Lập phiếu xuất kho mới (DRAFT)</span>}
+                open={isCreateOpen}
+                onCancel={() => setIsCreateOpen(false)}
+                footer={null}
+                width={720}
+                className="custom-dark-modal"
+                destroyOnClose
+            >
+                <form onSubmit={handleCreateIssue} className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Tên người nhận hàng *</label>
+                            <input
+                                type="text"
+                                placeholder="vd: Nguyễn Thị C"
+                                value={receiverName}
+                                onChange={(e) => setReceiverName(e.target.value)}
+                                required
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Ngày xuất hàng</label>
+                            <input
+                                type="date"
+                                value={issueDate}
+                                onChange={(e) => setIssueDate(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Số điện thoại nhận</label>
+                            <input
+                                type="text"
+                                placeholder="0987654321"
+                                value={receiverPhone}
+                                onChange={(e) => setReceiverPhone(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Địa chỉ giao hàng</label>
+                            <input
+                                type="text"
+                                placeholder="Số 123 Đường XYZ..."
+                                value={receiverAddress}
+                                onChange={(e) => setReceiverAddress(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">Ghi chú phiếu xuất</label>
+                        <input
+                            type="text"
+                            placeholder="Ghi chú về đơn xuất hàng..."
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                        />
+                    </div>
+
+                    {/* Dynamic Items */}
+                    <div className="border border-slate-700/80 rounded-xl p-3 bg-slate-900/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Danh sách sản phẩm xuất ({items.length})
+                            </span>
+                            <button
+                                type="button"
+                                onClick={addItemRow}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 text-xs font-semibold transition cursor-pointer"
+                            >
+                                <Plus size={13} /> Thêm dòng
+                            </button>
+                        </div>
+
+                        {items.map((row, idx) => (
+                            <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-slate-800/80 p-2.5 rounded-lg border border-slate-700/50">
+                                <div className="col-span-5">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Sản phẩm *</label>
+                                    <select
+                                        value={row.productId}
+                                        onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
+                                        required
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    >
+                                        <option value={0}>-- Chọn sản phẩm --</option>
+                                        {availableProducts.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name} (Tồn: {p.stockQuantity})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-span-3">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Số lượng xuất *</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={row.quantity}
+                                        onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
+                                        required
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div className="col-span-3">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Đơn giá bán/xuất</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={row.unitPrice || 0}
+                                        onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div className="col-span-1 pt-5 text-right">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeItemRow(idx)}
+                                        className="p-1 rounded text-red-400 hover:text-red-300 transition cursor-pointer"
+                                        title="Xóa dòng"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                        <button
+                            type="button"
+                            onClick={() => setIsCreateOpen(false)}
+                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-indigo-950"
+                        >
+                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            Lưu phiếu DRAFT
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal Edit Issue */}
+            <Modal
+                title={<span className="text-white text-lg font-bold">Chỉnh sửa phiếu xuất (DRAFT)</span>}
+                open={isEditOpen}
+                onCancel={() => setIsEditOpen(false)}
+                footer={null}
+                width={720}
+                className="custom-dark-modal"
+                destroyOnClose
+            >
+                <form onSubmit={handleUpdateIssue} className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Tên người nhận hàng *</label>
+                            <input
+                                type="text"
+                                value={receiverName}
+                                onChange={(e) => setReceiverName(e.target.value)}
+                                required
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Ngày xuất hàng</label>
+                            <input
+                                type="date"
+                                value={issueDate}
+                                onChange={(e) => setIssueDate(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Số điện thoại nhận</label>
+                            <input
+                                type="text"
+                                value={receiverPhone}
+                                onChange={(e) => setReceiverPhone(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-300 mb-1">Địa chỉ giao hàng</label>
+                            <input
+                                type="text"
+                                value={receiverAddress}
+                                onChange={(e) => setReceiverAddress(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">Ghi chú</label>
+                        <input
+                            type="text"
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                        />
+                    </div>
+
+                    {/* Dynamic Items */}
+                    <div className="border border-slate-700/80 rounded-xl p-3 bg-slate-900/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Danh sách sản phẩm ({items.length})
+                            </span>
+                            <button
+                                type="button"
+                                onClick={addItemRow}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 text-xs font-semibold transition cursor-pointer"
+                            >
+                                <Plus size={13} /> Thêm dòng
+                            </button>
+                        </div>
+
+                        {items.map((row, idx) => (
+                            <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-slate-800/80 p-2.5 rounded-lg border border-slate-700/50">
+                                <div className="col-span-5">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Sản phẩm *</label>
+                                    <select
+                                        value={row.productId}
+                                        onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
+                                        required
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    >
+                                        <option value={0}>-- Chọn sản phẩm --</option>
+                                        {availableProducts.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name} (Tồn: {p.stockQuantity})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-span-3">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Số lượng xuất *</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={row.quantity}
+                                        onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
+                                        required
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div className="col-span-3">
+                                    <label className="block text-[11px] text-slate-400 mb-1">Đơn giá bán/xuất</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={row.unitPrice || 0}
+                                        onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div className="col-span-1 pt-5 text-right">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeItemRow(idx)}
+                                        className="p-1 rounded text-red-400 hover:text-red-300 transition cursor-pointer"
+                                        title="Xóa dòng"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+                        <button
+                            type="button"
+                            onClick={() => setIsEditOpen(false)}
+                            className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm cursor-pointer"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold cursor-pointer shadow-lg shadow-indigo-950"
+                        >
+                            {submitting && <Loader2 size={16} className="animate-spin" />}
+                            Cập nhật phiếu
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal Detail Issue */}
+            <Modal
+                title={<span className="text-white text-lg font-bold">Chi tiết Phiếu Xuất Kho</span>}
+                open={isDetailOpen}
+                onCancel={() => setIsDetailOpen(false)}
+                footer={null}
+                width={700}
+                className="custom-dark-modal"
+            >
+                {selectedIssue && (
+                    <div className="space-y-4 mt-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 text-xs">
+                            <div>
+                                <span className="text-slate-400 block">Mã phiếu:</span>
+                                <strong className="text-indigo-400 font-mono text-sm">{selectedIssue.issueNo}</strong>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block">Trạng thái:</span>
+                                <strong className="text-white">{selectedIssue.status}</strong>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block">Người nhận:</span>
+                                <strong className="text-white">{selectedIssue.receiverName}</strong>
+                            </div>
+                            <div>
+                                <span className="text-slate-400 block">Ngày xuất:</span>
+                                <strong className="text-white">{formatDate(selectedIssue.issueDate)}</strong>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900/40 p-3 rounded-xl border border-slate-700/40 text-xs">
+                            <div className="flex items-center gap-1.5 text-slate-300">
+                                <Phone size={13} className="text-slate-400" />
+                                <span>SĐT: {selectedIssue.receiverPhone || "(Không có)"}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-slate-300">
+                                <MapPin size={13} className="text-slate-400" />
+                                <span>Địa chỉ: {selectedIssue.receiverAddress || "(Không có)"}</span>
+                            </div>
+                        </div>
+
+                        {selectedIssue.note && (
+                            <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/40 text-xs text-slate-300">
+                                <span className="text-slate-400 font-semibold">Ghi chú:</span> {selectedIssue.note}
+                            </div>
+                        )}
+
+                        <div className="border border-slate-700/80 rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-xs">
+                                <thead className="bg-slate-900 border-b border-slate-700 text-slate-400 uppercase">
+                                    <tr>
+                                        <th className="py-2.5 px-3">STT</th>
+                                        <th className="py-2.5 px-3">Sản phẩm</th>
+                                        <th className="py-2.5 px-3">Mã SKU</th>
+                                        <th className="py-2.5 px-3 text-right">Số lượng</th>
+                                        <th className="py-2.5 px-3 text-right">Đơn giá</th>
+                                        <th className="py-2.5 px-3 text-right">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-700/50">
+                                    {selectedIssue.items?.map((it, idx) => (
+                                        <tr key={it.id || idx} className="hover:bg-slate-800/40">
+                                            <td className="py-2.5 px-3 text-slate-400">{idx + 1}</td>
+                                            <td className="py-2.5 px-3 font-semibold text-white">{it.productName}</td>
+                                            <td className="py-2.5 px-3 font-mono text-indigo-400">{it.sku}</td>
+                                            <td className="py-2.5 px-3 text-right font-bold text-white">{it.quantity}</td>
+                                            <td className="py-2.5 px-3 text-right text-slate-300">{formatCurrency(it.unitPrice)}</td>
+                                            <td className="py-2.5 px-3 text-right font-bold text-indigo-400">
+                                                {formatCurrency(it.totalPrice || (it.unitPrice || 0) * it.quantity)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot className="bg-slate-900/80 border-t border-slate-700 font-semibold text-slate-200">
+                                    <tr>
+                                        <td colSpan={5} className="py-2.5 px-3 text-right">
+                                            TỔNG CỘNG:
+                                        </td>
+                                        <td className="py-2.5 px-3 text-right text-indigo-400 font-extrabold text-sm">
+                                            {formatCurrency(calculateTotal(selectedIssue))}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                            <button
+                                onClick={() => setIsDetailOpen(false)}
+                                className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs cursor-pointer font-medium"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+        </section>
     );
 }

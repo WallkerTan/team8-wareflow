@@ -1,14 +1,25 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Users, FolderKanban, Building2, User, LogOut } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminSidebar() {
     const location = useLocation();
     const currentPath = location.pathname;
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     const isActive = (path: string) => {
-        if (path === "/admin") {
+        if (path === "/admin" || path === "/admin/dashboard") {
             return currentPath === "/admin" || currentPath === "/admin/" || currentPath === "/admin/dashboard";
         }
         return currentPath.startsWith(path);
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        toast.success("Đã đăng xuất khỏi hệ thống");
+        navigate("/login", { replace: true });
     };
 
     return (
@@ -20,59 +31,73 @@ export default function AdminSidebar() {
                 </strong>
                 <small>ADMIN</small>
             </Link>
+
             <div className="admin-box">
-                <span className="avatar">AD</span>
-                <div>
-                    <b>Admin Portal</b>
-                    <small>Quản trị hệ thống</small>
+                <span className="avatar">
+                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "AD"}
+                </span>
+                <div className="overflow-hidden">
+                    <b className="truncate block">{user?.fullName || "Admin Portal"}</b>
+                    <small className="truncate block">{user?.email || "admin@wareflow.com"}</small>
                 </div>
-                <i>⌄</i>
             </div>
+
             <p className="nav-title">TỔNG QUAN</p>
             <nav>
                 <Link
-                    className={`nav-link ${isActive("/admin") && !isActive("/admin/users") && !isActive("/admin/categories") ? "active" : ""}`}
-                    to="/admin"
+                    className={`nav-link ${isActive("/admin") && !isActive("/admin/users") && !isActive("/admin/categories") && !isActive("/admin/suppliers") ? "active" : ""}`}
+                    to="/admin/dashboard"
                 >
-                    <b>▦</b>Dashboard
+                    <LayoutDashboard size={16} />
+                    <span>Dashboard</span>
                 </Link>
                 <Link
                     className={`nav-link ${isActive("/admin/users") ? "active" : ""}`}
                     to="/admin/users"
                 >
-                    <b>♙</b>Quản lý Users <em>24</em>
+                    <Users size={16} />
+                    <span>Quản lý Users</span>
                 </Link>
                 <Link
                     className={`nav-link ${isActive("/admin/categories") ? "active" : ""}`}
                     to="/admin/categories"
                 >
-                    <b>◇</b>Danh mục
+                    <FolderKanban size={16} />
+                    <span>Danh mục</span>
+                </Link>
+                <Link
+                    className={`nav-link ${isActive("/admin/suppliers") ? "active" : ""}`}
+                    to="/admin/suppliers"
+                >
+                    <Building2 size={16} />
+                    <span>Nhà cung cấp</span>
                 </Link>
             </nav>
-            <p className="nav-title">HỆ THỐNG</p>
+
+            <p className="nav-title">TÀI KHOẢN</p>
             <nav>
                 <Link
                     className={`nav-link ${isActive("/admin/profile") ? "active" : ""}`}
                     to="/admin/profile"
                 >
-                    <b>◎</b>Profile
-                </Link>
-                <Link
-                    className={`nav-link ${isActive("/admin/settings") ? "active" : ""}`}
-                    to="/admin/profile"
-                >
-                    <b>⚙</b>Cài đặt
+                    <User size={16} />
+                    <span>Hồ sơ cá nhân</span>
                 </Link>
             </nav>
+
             <div className="sidebar-bottom">
                 <div className="support">
-                    <b>Cần hỗ trợ?</b>
-                    <p>Liên hệ đội ngũ Wareflow khi cần giúp đỡ.</p>
-                    <a href="mailto:support@wareflow.vn">Liên hệ ngay →</a>
+                    <b>Hệ thống WareFlow</b>
+                    <p>Phiên bản 2.0 · Phân hệ Quản trị</p>
                 </div>
-                <Link className="logout" to="/auth/login">
-                    ↪ Đăng xuất
-                </Link>
+                <button
+                    onClick={handleLogout}
+                    className="logout flex items-center justify-center gap-2 w-full text-left cursor-pointer hover:bg-red-500/10 hover:text-red-400 transition"
+                    type="button"
+                >
+                    <LogOut size={16} />
+                    <span>Đăng xuất</span>
+                </button>
             </div>
         </aside>
     );
