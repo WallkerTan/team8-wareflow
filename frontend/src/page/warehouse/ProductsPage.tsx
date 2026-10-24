@@ -11,24 +11,28 @@ import {
     Loader2,
     AlertCircle,
     Tag,
+    Building2,
 } from "lucide-react";
 import { Modal, Popconfirm } from "antd";
 import { productService } from "../../api/services/productService";
 import type { ProductFilterParams } from "../../api/services/productService";
 import { categoryService } from "../../api/services/categoryService";
-import type { CategoryResponse, ProductRequest, ProductResponse } from "../../types";
+import { supplierService } from "../../api/services/supplierService";
+import type { CategoryResponse, ProductRequest, ProductResponse, SupplierResponse } from "../../types";
 import { getErrorMessage } from "../../api/client";
 import { formatCurrency } from "../../api/formatters";
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
     const [totalElements, setTotalElements] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [page, setPage] = useState(0);
     const [size] = useState(10);
     const [keyword, setKeyword] = useState("");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number | undefined>(undefined);
     const [lowStockOnly, setLowStockOnly] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -42,16 +46,21 @@ export default function ProductsPage() {
     const [sku, setSku] = useState("");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [formSupplierId, setFormSupplierId] = useState<number | undefined>(undefined);
     const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
     const [unit, setUnit] = useState("Cái");
     const [price, setPrice] = useState<number | undefined>(undefined);
     const [stockQuantity, setStockQuantity] = useState<number>(0);
     const [minStock, setMinStock] = useState<number>(5);
 
-    const loadCategories = async () => {
+    const loadReferenceData = async () => {
         try {
-            const data = await categoryService.getCategories();
-            setCategories(data);
+            const [cats, sups] = await Promise.all([
+                categoryService.getCategories(),
+                supplierService.getSuppliers(),
+            ]);
+            setCategories(cats);
+            setSuppliers(sups);
         } catch {
             // ignore
         }
@@ -64,6 +73,7 @@ export default function ProductsPage() {
                 page: targetPage,
                 size,
                 keyword: keyword.trim() || undefined,
+                supplierId: selectedSupplierId,
                 categoryId: selectedCategoryId,
                 lowStock: lowStockOnly,
             };
@@ -80,12 +90,12 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
-        loadCategories();
+        loadReferenceData();
     }, []);
 
     useEffect(() => {
         loadProducts(0);
-    }, [selectedCategoryId, lowStockOnly, size]);
+    }, [selectedCategoryId, selectedSupplierId, lowStockOnly, size]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,10 +108,15 @@ export default function ProductsPage() {
             toast.error("Mã SKU và Tên sản phẩm không được để trống");
             return;
         }
+        if (!formSupplierId) {
+            toast.error("Vui lòng chọn nhà cung cấp cho sản phẩm");
+            return;
+        }
 
         setSubmitting(true);
         try {
             const payload: ProductRequest = {
+                supplierId: formSupplierId,
                 sku: sku.trim().toUpperCase(),
                 name: name.trim(),
                 description: description.trim() || undefined,
@@ -119,6 +134,7 @@ export default function ProductsPage() {
             setSku("");
             setName("");
             setDescription("");
+            setFormSupplierId(undefined);
             setPrice(undefined);
             setStockQuantity(0);
             setMinStock(5);
@@ -135,6 +151,7 @@ export default function ProductsPage() {
         setSku(p.sku);
         setName(p.name);
         setDescription(p.description || "");
+        setFormSupplierId(p.supplierId);
         setCategoryId(p.categoryId);
         setUnit(p.unit || "Cái");
         setPrice(p.price);
@@ -153,6 +170,7 @@ export default function ProductsPage() {
         setSubmitting(true);
         try {
             const payload: ProductRequest = {
+                supplierId: formSupplierId ?? selectedProduct.supplierId ?? 0,
                 sku: sku.trim().toUpperCase(),
                 name: name.trim(),
                 description: description.trim() || undefined,
@@ -208,6 +226,7 @@ export default function ProductsPage() {
                             setSku("");
                             setName("");
                             setDescription("");
+                            setFormSupplierId(suppliers[0]?.id);
                             setCategoryId(categories[0]?.id);
                             setUnit("Cái");
                             setPrice(undefined);
@@ -244,6 +263,22 @@ export default function ProductsPage() {
                 </form>
 
                 <div className="flex items-center gap-3 flex-wrap">
+                    {/* Supplier Filter */}
+                    <select
+                        value={selectedSupplierId ?? ""}
+                        onChange={(e) =>
+                            setSelectedSupplierId(e.target.value ? Number(e.target.value) : undefined)
+                        }
+                        className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:outline-none focus:bg-white focus:border-blue-500 cursor-pointer"
+                    >
+                        <option value="">Tất cả nhà cung cấp</option>
+                        {suppliers.map((s) => (
+                            <option key={s.id} value={s.id}>
+                                {s.name}
+                            </option>
+                        ))}
+                    </select>
+
                     {/* Category Filter */}
                     <div className="flex items-center gap-1.5">
                         <select
@@ -285,6 +320,7 @@ export default function ProductsPage() {
                         <thead>
                             <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 text-xs uppercase tracking-wider font-semibold">
                                 <th className="py-3.5 px-4 font-semibold">Mặt hàng</th>
+                                <th className="py-3.5 px-4 font-semibold">Nhà cung cấp</th>
                                 <th className="py-3.5 px-4 font-semibold">Danh mục</th>
                                 <th className="py-3.5 px-4 font-semibold">Tồn kho hiện tại</th>
                                 <th className="py-3.5 px-4 font-semibold">Ngưỡng tối thiểu</th>
@@ -296,7 +332,7 @@ export default function ProductsPage() {
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                                    <td colSpan={8} className="py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <Loader2 size={24} className="animate-spin text-blue-600" />
                                             <span>Đang tải dữ liệu hàng hóa...</span>
@@ -305,7 +341,7 @@ export default function ProductsPage() {
                                 </tr>
                             ) : products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                                    <td colSpan={8} className="py-12 text-center text-slate-500">
                                         <AlertCircle size={28} className="mx-auto mb-2 text-slate-400" />
                                         <span>Không tìm thấy sản phẩm nào trong kho.</span>
                                     </td>
@@ -325,6 +361,12 @@ export default function ProductsPage() {
                                                         <div className="text-xs font-mono text-blue-600 font-medium">{p.sku}</div>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td className="py-3.5 px-4">
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-violet-50 text-violet-700 text-xs border border-violet-200">
+                                                    <Building2 size={11} className="text-violet-400" />
+                                                    {p.supplierName || "Chưa gán"}
+                                                </span>
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs border border-slate-200">
@@ -426,6 +468,23 @@ export default function ProductsPage() {
                 destroyOnClose
             >
                 <form onSubmit={handleCreate} className="space-y-4 mt-4">
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <select
+                            value={formSupplierId ?? ""}
+                            onChange={(e) => setFormSupplierId(e.target.value ? Number(e.target.value) : undefined)}
+                            required
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            {suppliers.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">Mã SKU *</label>
@@ -557,6 +616,22 @@ export default function ProductsPage() {
                 <form onSubmit={handleUpdate} className="space-y-4 mt-4">
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                         Lưu ý: Tồn kho chỉ thay đổi thông qua Phiếu Nhập kho hoặc Phiếu Xuất kho hợp lệ.
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <select
+                            value={formSupplierId ?? ""}
+                            onChange={(e) => setFormSupplierId(e.target.value ? Number(e.target.value) : undefined)}
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            {suppliers.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">

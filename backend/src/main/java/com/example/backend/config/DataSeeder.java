@@ -66,14 +66,18 @@ public class DataSeeder implements ApplicationRunner {
         seedCategory("Thực phẩm", "Nguyên liệu và thực phẩm");
         seedCategory("Văn phòng phẩm", "Dụng cụ văn phòng");
 
-        Long supplierId = seedSupplier("Công ty TNHH Phát Triển", "contact@phattrien.com", "0901234567");
-        seedSupplier("Nhà cung cấp An Phú", "info@anphu.com", "0912345678");
+        Long supplierId1 = seedSupplier("Công ty TNHH Phát Triển", "contact@phattrien.com", "0901234567");
+        Long supplierId2 = seedSupplier("Nhà cung cấp An Phú", "info@anphu.com", "0912345678");
 
-        seedProduct("SP001", "Nồi cơm điện", categoryId, "Cái", BigDecimal.valueOf(750000), 20, 5);
-        seedProduct("SP002", "Tủ lạnh 250L", categoryId, "Cái", BigDecimal.valueOf(8990000), 8, 3);
-        seedProduct("SP003", "Bộ nồi inox 5 món", categoryId, "Bộ", BigDecimal.valueOf(1250000), 3, 5);
-        seedProduct("SP004", "Gạo tám sọ 25kg", categoryId, "Bao", BigDecimal.valueOf(320000), 50, 10);
-        seedProduct("SP005", "Dầu ăn 5L", categoryId, "Can", BigDecimal.valueOf(180000), 4, 8);
+        Long ownerId = userRepository.findByEmailIgnoreCase(ownerEmail).map(User::getId).orElse(null);
+
+        if (ownerId != null) {
+            seedProduct(ownerId, supplierId1, "SP001", "Nồi cơm điện", categoryId, "Cái", BigDecimal.valueOf(750000), 20, 5);
+            seedProduct(ownerId, supplierId1, "SP002", "Tủ lạnh 250L", categoryId, "Cái", BigDecimal.valueOf(8990000), 8, 3);
+            seedProduct(ownerId, supplierId1, "SP003", "Bộ nồi inox 5 món", categoryId, "Bộ", BigDecimal.valueOf(1250000), 3, 5);
+            seedProduct(ownerId, supplierId2, "SP004", "Gạo tám sọ 25kg", categoryId, "Bao", BigDecimal.valueOf(320000), 50, 10);
+            seedProduct(ownerId, supplierId2, "SP005", "Dầu ăn 5L", categoryId, "Can", BigDecimal.valueOf(180000), 4, 8);
+        }
 
         log.info("[seed] Hoàn tất. Tài khoản: {} (ADMIN) / {} (WAREHOUSE_OWNER)", adminEmail, ownerEmail);
     }
@@ -106,12 +110,14 @@ public class DataSeeder implements ApplicationRunner {
                         .name(name).email(email).phone(phone).active(true).build()).getId());
     }
 
-    private void seedProduct(String sku, String name, Long categoryId, String unit,
+    private void seedProduct(Long ownerId, Long supplierId, String sku, String name, Long categoryId, String unit,
                              BigDecimal price, int stock, int minStock) {
-        if (productRepository.existsBySkuIgnoreCase(sku)) {
+        if (productRepository.existsByOwnerIdAndSkuIgnoreCase(ownerId, sku)) {
             return;
         }
         productRepository.save(Product.builder()
+                .ownerId(ownerId)
+                .supplierId(supplierId)
                 .sku(sku)
                 .name(name)
                 .categoryId(categoryId)

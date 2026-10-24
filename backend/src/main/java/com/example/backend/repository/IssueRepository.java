@@ -19,11 +19,15 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
 
     @Query("""
             SELECT i FROM Issue i
-            WHERE (:status IS NULL OR i.status = :status)
+            WHERE (:userId IS NULL OR i.createdBy = :userId)
+              AND (:status IS NULL OR i.status = :status)
+              AND (:supplierId IS NULL OR i.supplierId = :supplierId)
               AND (:fromDate IS NULL OR i.issueDate >= :fromDate)
               AND (:toDate IS NULL OR i.issueDate <= :toDate)
             """)
-    Page<Issue> search(@Param("status") DocumentStatus status,
+    Page<Issue> search(@Param("userId") Long userId,
+                       @Param("status") DocumentStatus status,
+                       @Param("supplierId") Long supplierId,
                        @Param("fromDate") LocalDate fromDate,
                        @Param("toDate") LocalDate toDate,
                        Pageable pageable);

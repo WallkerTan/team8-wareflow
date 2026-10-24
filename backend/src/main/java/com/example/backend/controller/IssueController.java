@@ -33,20 +33,23 @@ public class IssueController {
 
     private final InventoryService inventoryService;
 
-    /** GET /api/issues - list + filter theo status/ngày. */
+    /** GET /api/issues - list + filter theo status/supplier/ngày của kho hiện tại. */
     @GetMapping
     public ResponseEntity<PageResponse<IssueResponse>> list(
             @RequestParam(required = false) DocumentStatus status,
+            @RequestParam(required = false) Long supplierId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(inventoryService.searchIssues(status, fromDate, toDate, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(inventoryService.searchIssues(principal.getId(), status, supplierId, fromDate, toDate, page, size));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> get(@PathVariable Long id) {
-        return ResponseEntity.ok(inventoryService.findIssueById(id));
+    public ResponseEntity<IssueResponse> get(@PathVariable Long id,
+                                             @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(inventoryService.findIssueById(id, principal.getId()));
     }
 
     /** POST /api/issues - tạo phiếu xuất DRAFT. */
@@ -67,8 +70,9 @@ public class IssueController {
 
     /** DELETE /api/issues/{id} - xoá phiếu xuất DRAFT. */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        inventoryService.deleteIssue(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                       @AuthenticationPrincipal UserPrincipal principal) {
+        inventoryService.deleteIssue(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 
