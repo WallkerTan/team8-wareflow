@@ -25,13 +25,21 @@ export default function Sidebar({ mobileNav, setMobileNav }: SidebarProps) {
 
     const isActive = (path: string) => {
         if (path === "/warehouse/products") {
-            return currentPath === "/warehouse/products" || currentPath === "/warehouse/inventory";
+            return (
+                currentPath === "/warehouse/products" ||
+                currentPath === "/warehouse/inventory"
+            );
         }
         if (path === "/warehouse/shipments") {
-            return currentPath === "/warehouse/shipments" || currentPath === "/warehouse/shipping";
+            return (
+                currentPath === "/warehouse/shipments" ||
+                currentPath === "/warehouse/shipping"
+            );
         }
         if (path === "/warehouse") {
-            return currentPath === "/warehouse" || currentPath === "/warehouse/";
+            return (
+                currentPath === "/warehouse" || currentPath === "/warehouse/"
+            );
         }
         return currentPath.startsWith(path);
     };
@@ -43,10 +51,26 @@ export default function Sidebar({ mobileNav, setMobileNav }: SidebarProps) {
     };
 
     const navItems = [
-        { label: "Sản phẩm & Tồn kho", icon: Package, path: "/warehouse/products" },
-        { label: "Phiếu nhập kho", icon: ArrowDownToLine, path: "/warehouse/receipts" },
-        { label: "Phiếu xuất kho", icon: ArrowUpRight, path: "/warehouse/issues" },
-        { label: "Giao hàng & Vận đơn", icon: Truck, path: "/warehouse/shipments" },
+        {
+            label: "Sản phẩm & Tồn kho",
+            icon: Package,
+            path: "/warehouse/products",
+        },
+        {
+            label: "Phiếu nhập kho",
+            icon: ArrowDownToLine,
+            path: "/warehouse/receipts",
+        },
+        {
+            label: "Phiếu xuất kho",
+            icon: ArrowUpRight,
+            path: "/warehouse/issues",
+        },
+        {
+            label: "Giao hàng & Vận đơn",
+            icon: Truck,
+            path: "/warehouse/shipments",
+        },
         { label: "Lịch sử kho", icon: FileClock, path: "/warehouse/history" },
     ];
 
@@ -64,11 +88,17 @@ export default function Sidebar({ mobileNav, setMobileNav }: SidebarProps) {
             <div className="workspace-label">KHÔNG GIAN LÀM VIỆC</div>
             <div className="workspace-switch">
                 <span className="workspace-avatar">
-                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "K"}
+                    {user?.fullName
+                        ? user.fullName.charAt(0).toUpperCase()
+                        : "K"}
                 </span>
                 <span className="overflow-hidden">
-                    <b className="truncate block">{user?.fullName || "Chủ kho WareFlow"}</b>
-                    <small className="truncate block">{user?.email || "owner@wareflow.com"}</small>
+                    <b className="truncate block">
+                        {user?.fullName || "Chủ kho WareFlow"}
+                    </b>
+                    <small className="truncate block">
+                        {user?.email || "owner@wareflow.com"}
+                    </small>
                 </span>
             </div>
 
@@ -105,16 +135,12 @@ export default function Sidebar({ mobileNav, setMobileNav }: SidebarProps) {
 
             <div className="sidebar-bottom">
                 <button
-                    className="profile-button w-full cursor-pointer hover:bg-red-500/10 transition"
                     onClick={handleLogout}
+                    className="logout flex items-center justify-center gap-2 w-full text-left cursor-pointer hover:bg-red-500/10 hover:text-red-400 transition"
+                    type="button"
                 >
-                    <span className="profile-avatar bg-red-500/20 text-red-400">
-                        <LogOut size={16} />
-                    </span>
-                    <span className="text-left">
-                        <b className="text-red-400">Đăng xuất</b>
-                        <small>Thoát phiên làm việc</small>
-                    </span>
+                    <LogOut size={16} />
+                    <span>Đăng xuất</span>
                 </button>
             </div>
         </aside>
