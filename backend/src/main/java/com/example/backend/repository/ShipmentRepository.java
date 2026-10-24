@@ -19,11 +19,14 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     boolean existsByShipmentNo(String shipmentNo);
 
     @Query("""
-            SELECT s FROM Shipment s
-            WHERE (:status IS NULL OR s.status = :status)
+            SELECT s FROM Shipment s, Issue i
+            WHERE s.issueId = i.id
+              AND (:userId IS NULL OR i.createdBy = :userId)
+              AND (:status IS NULL OR s.status = :status)
               AND (:issueId IS NULL OR s.issueId = :issueId)
             """)
-    Page<Shipment> search(@Param("status") ShipmentStatus status,
+    Page<Shipment> search(@Param("userId") Long userId,
+                          @Param("status") ShipmentStatus status,
                           @Param("issueId") Long issueId,
                           Pageable pageable);
 

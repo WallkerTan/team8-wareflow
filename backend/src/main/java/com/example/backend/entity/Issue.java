@@ -26,6 +26,10 @@ public class Issue extends BaseEntity {
     @Column(name = "issue_no", nullable = false, unique = true, length = 50)
     private String issueNo;
 
+    /** ID nhà cung cấp có sản phẩm được xuất kho. */
+    @Column(name = "supplier_id", nullable = false)
+    private Long supplierId;
+
     @Column(name = "issue_date", nullable = false)
     private LocalDate issueDate;
 

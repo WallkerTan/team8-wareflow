@@ -2,6 +2,7 @@ import { apiClient } from "../client";
 import type { PageResponse, ProductRequest, ProductResponse } from "../../types";
 
 export interface ProductFilterParams {
+    supplierId?: number;
     categoryId?: number;
     keyword?: string;
     lowStock?: boolean;

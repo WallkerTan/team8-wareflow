@@ -19,12 +19,14 @@ import { Modal, Popconfirm } from "antd";
 import { issueService } from "../../api/services/issueService";
 import type { IssueFilterParams } from "../../api/services/issueService";
 import { productService } from "../../api/services/productService";
+import { supplierService } from "../../api/services/supplierService";
 import type {
     DocumentStatus,
     IssueItemRequest,
     IssueRequest,
     IssueResponse,
     ProductResponse,
+    SupplierResponse,
 } from "../../types";
 import { getErrorMessage } from "../../api/client";
 import { formatCurrency, formatDate } from "../../api/formatters";
@@ -32,6 +34,7 @@ import { formatCurrency, formatDate } from "../../api/formatters";
 export default function IssuesPage() {
     const [issues, setIssues] = useState<IssueResponse[]>([]);
     const [availableProducts, setAvailableProducts] = useState<ProductResponse[]>([]);
+    const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
     const [totalElements, setTotalElements] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [page, setPage] = useState(0);
@@ -48,6 +51,7 @@ export default function IssuesPage() {
     const [submitting, setSubmitting] = useState(false);
 
     // Form fields
+    const [formSupplierId, setFormSupplierId] = useState<number | undefined>(undefined);
     const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
     const [receiverName, setReceiverName] = useState("");
     const [receiverPhone, setReceiverPhone] = useState("");
@@ -61,10 +65,14 @@ export default function IssuesPage() {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [selectedIssue, setSelectedIssue] = useState<IssueResponse | null>(null);
 
-    const loadProducts = async () => {
+    const loadSuppliersAndProducts = async () => {
         try {
-            const res = await productService.getProducts({ size: 100 });
-            setAvailableProducts(res.content);
+            const [supRes, prodRes] = await Promise.all([
+                supplierService.getSuppliers(),
+                productService.getProducts({ size: 500 }),
+            ]);
+            setSuppliers(supRes);
+            setAvailableProducts(prodRes.content);
         } catch {
             // ignore
         }
@@ -93,16 +101,24 @@ export default function IssuesPage() {
     };
 
     useEffect(() => {
-        loadProducts();
+        loadSuppliersAndProducts();
     }, []);
 
     useEffect(() => {
         loadIssues(0);
     }, [statusFilter, fromDate, toDate, size]);
 
+    // When supplier changes in the form, reset items to avoid cross-supplier product mixes
+    const handleFormSupplierChange = (newSupplierId: number) => {
+        setFormSupplierId(newSupplierId);
+        const firstProduct = availableProducts.find((p) => p.supplierId === newSupplierId);
+        setItems([{ productId: firstProduct?.id || 0, quantity: 1, unitPrice: firstProduct?.price || 0 }]);
+    };
+
     // Dynamic Items form handlers
     const addItemRow = () => {
-        setItems([...items, { productId: availableProducts[0]?.id || 0, quantity: 1, unitPrice: 0 }]);
+        const firstProduct = availableProducts.find((p) => p.supplierId === formSupplierId);
+        setItems([...items, { productId: firstProduct?.id || 0, quantity: 1, unitPrice: 0 }]);
     };
 
     const removeItemRow = (index: number) => {
@@ -126,6 +142,11 @@ export default function IssuesPage() {
     };
 
     const resetForm = () => {
+        const firstSupplier = suppliers[0];
+        const firstProduct = firstSupplier
+            ? availableProducts.find((p) => p.supplierId === firstSupplier.id)
+            : undefined;
+        setFormSupplierId(firstSupplier?.id);
         setIssueDate(new Date().toISOString().split("T")[0]);
         setReceiverName("");
         setReceiverPhone("");
@@ -133,9 +154,9 @@ export default function IssuesPage() {
         setNote("");
         setItems([
             {
-                productId: availableProducts[0]?.id || 0,
+                productId: firstProduct?.id || 0,
                 quantity: 1,
-                unitPrice: availableProducts[0]?.price || 0,
+                unitPrice: firstProduct?.price || 0,
             },
         ]);
     };
@@ -147,6 +168,10 @@ export default function IssuesPage() {
 
     const handleCreateIssue = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!formSupplierId) {
+            toast.error("Vui lòng chọn nhà cung cấp");
+            return;
+        }
         if (!receiverName.trim()) {
             toast.error("Vui lòng nhập tên người nhận hàng");
             return;
@@ -160,6 +185,7 @@ export default function IssuesPage() {
         setSubmitting(true);
         try {
             const payload: IssueRequest = {
+                supplierId: formSupplierId,
                 issueDate: issueDate || undefined,
                 receiverName: receiverName.trim(),
                 receiverPhone: receiverPhone.trim() || undefined,
@@ -184,6 +210,7 @@ export default function IssuesPage() {
 
     const openEditModal = (iss: IssueResponse) => {
         setEditingIssueId(iss.id);
+        setFormSupplierId(iss.supplierId);
         setIssueDate(iss.issueDate || new Date().toISOString().split("T")[0]);
         setReceiverName(iss.receiverName);
         setReceiverPhone(iss.receiverPhone || "");
@@ -211,6 +238,7 @@ export default function IssuesPage() {
         setSubmitting(true);
         try {
             const payload: IssueRequest = {
+                supplierId: formSupplierId ?? 0,
                 issueDate: issueDate || undefined,
                 receiverName: receiverName.trim(),
                 receiverPhone: receiverPhone.trim() || undefined,
@@ -529,6 +557,23 @@ export default function IssuesPage() {
                 destroyOnClose
             >
                 <form onSubmit={handleCreateIssue} className="space-y-4 mt-4">
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <select
+                            value={formSupplierId ?? ""}
+                            onChange={(e) => handleFormSupplierChange(Number(e.target.value))}
+                            required
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            {suppliers.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">Tên người nhận hàng *</label>
@@ -612,8 +657,10 @@ export default function IssuesPage() {
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
-                                        {availableProducts.map((p) => (
-                                             <option key={p.id} value={p.id}>
+                                        {availableProducts
+                                            .filter((p) => !formSupplierId || p.supplierId === formSupplierId)
+                                            .map((p) => (
+                                            <option key={p.id} value={p.id}>
                                                 {p.name} (Tồn: {p.stockQuantity})
                                             </option>
                                         ))}
@@ -685,6 +732,23 @@ export default function IssuesPage() {
                 destroyOnClose
             >
                 <form onSubmit={handleUpdateIssue} className="space-y-4 mt-4">
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <select
+                            value={formSupplierId ?? ""}
+                            onChange={(e) => handleFormSupplierChange(Number(e.target.value))}
+                            required
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            {suppliers.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">Tên người nhận hàng *</label>
@@ -764,7 +828,9 @@ export default function IssuesPage() {
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
-                                        {availableProducts.map((p) => (
+                                        {availableProducts
+                                            .filter((p) => !formSupplierId || p.supplierId === formSupplierId)
+                                            .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} (Tồn: {p.stockQuantity})
                                             </option>

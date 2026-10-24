@@ -20,6 +20,8 @@ public class IssueResponse {
 
     private Long id;
     private String issueNo;
+    private Long supplierId;
+    private String supplierName;
     private LocalDate issueDate;
     private String receiverName;
     private String receiverAddress;

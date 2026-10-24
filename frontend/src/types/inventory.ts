@@ -32,6 +32,9 @@ export interface SupplierRequest {
 
 export interface ProductResponse {
     id: number;
+    ownerId?: number;
+    supplierId?: number;
+    supplierName?: string;
     sku: string;
     name: string;
     description?: string;
@@ -51,6 +54,7 @@ export interface ProductRequest {
     sku: string;
     name: string;
     description?: string;
+    supplierId: number;
     categoryId?: number;
     unit?: string;
     price?: number;

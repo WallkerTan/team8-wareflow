@@ -13,6 +13,8 @@ export interface IssueItemResponse {
 export interface IssueResponse {
     id: number;
     issueNo: string;
+    supplierId?: number;
+    supplierName?: string;
     issueDate?: string;
     receiverName: string;
     receiverAddress?: string;
@@ -33,6 +35,7 @@ export interface IssueItemRequest {
 }
 
 export interface IssueRequest {
+    supplierId: number;
     issueDate?: string;
     receiverName: string;
     receiverAddress?: string;

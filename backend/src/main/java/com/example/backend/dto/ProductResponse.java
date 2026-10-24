@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 public class ProductResponse {
 
     private Long id;
+    private Long ownerId;
+    private Long supplierId;
+    private String supplierName;
     private String sku;
     private String name;
     private String description;
