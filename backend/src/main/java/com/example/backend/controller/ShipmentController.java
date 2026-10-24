@@ -38,13 +38,15 @@ public class ShipmentController {
             @RequestParam(required = false) ShipmentStatus status,
             @RequestParam(required = false) Long issueId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(shipmentService.search(status, issueId, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(shipmentService.search(principal.getId(), status, issueId, page, size));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShipmentResponse> get(@PathVariable Long id) {
-        return ResponseEntity.ok(shipmentService.findById(id));
+    public ResponseEntity<ShipmentResponse> get(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(shipmentService.findById(id, principal.getId()));
     }
 
     /** POST /api/shipments - tạo shipment từ issue CONFIRMED (quan hệ 1-1). */
@@ -65,7 +67,8 @@ public class ShipmentController {
 
     /** GET /api/shipments/{id}/logs - timeline lịch sử trạng thái. */
     @GetMapping("/{id}/logs")
-    public ResponseEntity<List<ShipmentLogResponse>> logs(@PathVariable Long id) {
-        return ResponseEntity.ok(shipmentService.getLogs(id));
+    public ResponseEntity<List<ShipmentLogResponse>> logs(@PathVariable Long id,
+                                                          @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(shipmentService.getLogs(id, principal.getId()));
     }
 }

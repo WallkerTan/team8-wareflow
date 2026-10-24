@@ -59,18 +59,19 @@ public class InventoryService {
     // ------------------------------------------------------------------
 
     @Transactional(readOnly = true)
-    public PageResponse<ReceiptResponse> searchReceipts(DocumentStatus status, Long supplierId,
+    public PageResponse<ReceiptResponse> searchReceipts(Long userId, DocumentStatus status, Long supplierId,
                                                         LocalDate fromDate, LocalDate toDate,
                                                         int page, int size) {
-        Page<Receipt> result = receiptRepository.search(status, supplierId, fromDate, toDate,
+        Page<Receipt> result = receiptRepository.search(userId, status, supplierId, fromDate, toDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         return PageResponse.of(result.map(this::toReceiptResponse));
     }
 
     @Transactional(readOnly = true)
-    public ReceiptResponse findReceiptById(Long id) {
+    public ReceiptResponse findReceiptById(Long id, Long userId) {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu nhập", id));
+        validateReceiptOwner(receipt, userId);
         return toReceiptResponse(receipt);
     }
 
@@ -79,11 +80,13 @@ public class InventoryService {
         if (!supplierRepository.existsById(request.getSupplierId())) {
             throw new BusinessException("Nhà cung cấp với id = " + request.getSupplierId() + " không tồn tại");
         }
-        // Gom các dòng cùng product lại để tránh trừ/cộng sai.
+        // Validate sản phẩm thuộc về kho hiện tại và thuộc đúng Nhà cung cấp đã chọn
         Map<Long, Integer> quantities = new HashMap<>();
         for (ReceiptRequest.Item item : request.getItems()) {
-            if (!productRepository.existsById(item.getProductId())) {
-                throw new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại");
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            if (!request.getSupplierId().equals(product.getSupplierId())) {
+                throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
             quantities.merge(item.getProductId(), item.getQuantity(), Integer::sum);
         }
@@ -99,7 +102,7 @@ public class InventoryService {
         receipt = receiptRepository.save(receipt);
 
         for (ReceiptRequest.Item item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId()).orElseThrow();
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             receiptItemRepository.save(ReceiptItem.builder()
@@ -116,14 +119,18 @@ public class InventoryService {
     public ReceiptResponse updateReceipt(Long id, ReceiptRequest request, Long userId) {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu nhập", id));
+        validateReceiptOwner(receipt, userId);
         requireDraft(receipt.getStatus(), "phiếu nhập");
 
-        if (request.getSupplierId() != null && !supplierRepository.existsById(request.getSupplierId())) {
-            throw new BusinessException("Nhà cung cấp với id = " + request.getSupplierId() + " không tồn tại");
+        Long targetSupplierId = request.getSupplierId() != null ? request.getSupplierId() : receipt.getSupplierId();
+        if (!supplierRepository.existsById(targetSupplierId)) {
+            throw new BusinessException("Nhà cung cấp với id = " + targetSupplierId + " không tồn tại");
         }
         for (ReceiptRequest.Item item : request.getItems()) {
-            if (!productRepository.existsById(item.getProductId())) {
-                throw new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại");
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            if (!targetSupplierId.equals(product.getSupplierId())) {
+                throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
         }
 
@@ -142,7 +149,7 @@ public class InventoryService {
         receiptItemRepository.deleteByReceiptId(receipt.getId());
         receiptItemRepository.flush();
         for (ReceiptRequest.Item item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId()).orElseThrow();
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             receiptItemRepository.save(ReceiptItem.builder()
@@ -156,9 +163,10 @@ public class InventoryService {
     }
 
     @Transactional
-    public void deleteReceipt(Long id) {
+    public void deleteReceipt(Long id, Long userId) {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu nhập", id));
+        validateReceiptOwner(receipt, userId);
         requireDraft(receipt.getStatus(), "phiếu nhập");
 
         receiptItemRepository.deleteByReceiptId(id);
@@ -167,12 +175,13 @@ public class InventoryService {
     }
 
     /**
-     * W6 - Xác nhận phiếu nhập: cộng stock. Toàn bộ nằm trong 1 transaction.
+     * W6 - Xác nhận phiếu nhập: cộng stock vào kho của chủ kho hiện tại. Toàn bộ nằm trong 1 transaction.
      */
     @Transactional
     public ReceiptResponse confirmReceipt(Long id, Long userId) {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu nhập", id));
+        validateReceiptOwner(receipt, userId);
         requireDraft(receipt.getStatus(), "phiếu nhập");
 
         List<ReceiptItem> items = receiptItemRepository.findByReceiptIdOrderById(id);
@@ -189,8 +198,8 @@ public class InventoryService {
                 .toList();
 
         for (Long productId : productIds) {
-            Product product = productRepository.findByIdForUpdate(productId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại"));
+            Product product = productRepository.findByIdForUpdateAndOwnerId(productId, userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại trong kho của bạn"));
             int quantity = items.stream()
                     .filter(i -> i.getProductId().equals(productId))
                     .mapToInt(ReceiptItem::getQuantity)
@@ -210,6 +219,7 @@ public class InventoryService {
     public ReceiptResponse cancelReceipt(Long id, Long userId) {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu nhập", id));
+        validateReceiptOwner(receipt, userId);
         requireDraft(receipt.getStatus(), "phiếu nhập");
 
         receipt.setStatus(DocumentStatus.CANCELLED);
@@ -223,30 +233,37 @@ public class InventoryService {
     // ------------------------------------------------------------------
 
     @Transactional(readOnly = true)
-    public PageResponse<IssueResponse> searchIssues(DocumentStatus status, LocalDate fromDate,
-                                                     LocalDate toDate, int page, int size) {
-        Page<Issue> result = issueRepository.search(status, fromDate, toDate,
+    public PageResponse<IssueResponse> searchIssues(Long userId, DocumentStatus status, Long supplierId,
+                                                    LocalDate fromDate, LocalDate toDate, int page, int size) {
+        Page<Issue> result = issueRepository.search(userId, status, supplierId, fromDate, toDate,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         return PageResponse.of(result.map(this::toIssueResponse));
     }
 
     @Transactional(readOnly = true)
-    public IssueResponse findIssueById(Long id) {
+    public IssueResponse findIssueById(Long id, Long userId) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", id));
+        validateIssueOwner(issue, userId);
         return toIssueResponse(issue);
     }
 
     @Transactional
     public IssueResponse createIssue(IssueRequest request, Long userId) {
+        if (!supplierRepository.existsById(request.getSupplierId())) {
+            throw new BusinessException("Nhà cung cấp với id = " + request.getSupplierId() + " không tồn tại");
+        }
         for (IssueRequest.Item item : request.getItems()) {
-            if (!productRepository.existsById(item.getProductId())) {
-                throw new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại");
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            if (!request.getSupplierId().equals(product.getSupplierId())) {
+                throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
         }
 
         Issue issue = Issue.builder()
                 .issueNo(generateIssueNo())
+                .supplierId(request.getSupplierId())
                 .issueDate(request.getIssueDate() == null ? LocalDate.now() : request.getIssueDate())
                 .receiverName(request.getReceiverName().trim())
                 .receiverAddress(request.getReceiverAddress())
@@ -258,7 +275,7 @@ public class InventoryService {
         issue = issueRepository.save(issue);
 
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId()).orElseThrow();
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             issueItemRepository.save(IssueItem.builder()
@@ -275,14 +292,24 @@ public class InventoryService {
     public IssueResponse updateIssue(Long id, IssueRequest request, Long userId) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", id));
+        validateIssueOwner(issue, userId);
         requireDraft(issue.getStatus(), "phiếu xuất");
 
+        Long targetSupplierId = request.getSupplierId() != null ? request.getSupplierId() : issue.getSupplierId();
+        if (!supplierRepository.existsById(targetSupplierId)) {
+            throw new BusinessException("Nhà cung cấp với id = " + targetSupplierId + " không tồn tại");
+        }
         for (IssueRequest.Item item : request.getItems()) {
-            if (!productRepository.existsById(item.getProductId())) {
-                throw new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại");
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            if (!targetSupplierId.equals(product.getSupplierId())) {
+                throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
         }
 
+        if (request.getSupplierId() != null) {
+            issue.setSupplierId(request.getSupplierId());
+        }
         if (request.getIssueDate() != null) {
             issue.setIssueDate(request.getIssueDate());
         }
@@ -304,7 +331,7 @@ public class InventoryService {
         issueItemRepository.deleteByIssueId(issue.getId());
         issueItemRepository.flush();
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findById(item.getProductId()).orElseThrow();
+            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             issueItemRepository.save(IssueItem.builder()
@@ -318,9 +345,10 @@ public class InventoryService {
     }
 
     @Transactional
-    public void deleteIssue(Long id) {
+    public void deleteIssue(Long id, Long userId) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", id));
+        validateIssueOwner(issue, userId);
         requireDraft(issue.getStatus(), "phiếu xuất");
 
         issueItemRepository.deleteByIssueId(id);
@@ -329,13 +357,14 @@ public class InventoryService {
     }
 
     /**
-     * W10 - Xác nhận phiếu xuất: trừ stock. W9 - validate quantity &lt;= stock_quantity.
+     * W10 - Xác nhận phiếu xuất: trừ stock của kho hiện tại. W9 - validate quantity &lt;= stock_quantity.
      * Toàn bộ nằm trong 1 transaction: nếu có bất kỳ lỗi nào thì rollback toàn bộ.
      */
     @Transactional
     public IssueResponse confirmIssue(Long id, Long userId) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", id));
+        validateIssueOwner(issue, userId);
         requireDraft(issue.getStatus(), "phiếu xuất");
 
         List<IssueItem> items = issueItemRepository.findByIssueIdOrderById(id);
@@ -355,17 +384,17 @@ public class InventoryService {
 
         // W9: kiểm tra tồn trước khi trừ (đọc đã khoá => không có lost update).
         for (Long productId : productIds) {
-            Product product = productRepository.findByIdForUpdate(productId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại"));
+            Product product = productRepository.findByIdForUpdateAndOwnerId(productId, userId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại trong kho của bạn"));
             if (product.getStockQuantity() < required.get(productId)) {
                 throw new BusinessException(
                         "Sản phẩm '" + product.getName() + "' chỉ còn " + product.getStockQuantity()
-                                + " trong kho, không đủ để xuất " + required.get(productId));
+                                + " trong kho của bạn, không đủ để xuất " + required.get(productId));
             }
         }
 
         for (Long productId : productIds) {
-            Product product = productRepository.findById(productId).orElseThrow();
+            Product product = productRepository.findByIdAndOwnerId(productId, userId).orElseThrow();
             product.setStockQuantity(product.getStockQuantity() - required.get(productId));
             productRepository.save(product);
         }
@@ -381,6 +410,7 @@ public class InventoryService {
     public IssueResponse cancelIssue(Long id, Long userId) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", id));
+        validateIssueOwner(issue, userId);
         requireDraft(issue.getStatus(), "phiếu xuất");
 
         issue.setStatus(DocumentStatus.CANCELLED);
@@ -392,6 +422,18 @@ public class InventoryService {
     // ------------------------------------------------------------------
     // HELPERS
     // ------------------------------------------------------------------
+
+    private void validateReceiptOwner(Receipt receipt, Long userId) {
+        if (receipt.getCreatedBy() != null && !receipt.getCreatedBy().equals(userId)) {
+            throw new BusinessException("Bạn không có quyền truy cập phiếu nhập của kho khác");
+        }
+    }
+
+    private void validateIssueOwner(Issue issue, Long userId) {
+        if (issue.getCreatedBy() != null && !issue.getCreatedBy().equals(userId)) {
+            throw new BusinessException("Bạn không có quyền truy cập phiếu xuất của kho khác");
+        }
+    }
 
     private void requireDraft(DocumentStatus status, String name) {
         if (status != DocumentStatus.DRAFT) {
@@ -437,6 +479,10 @@ public class InventoryService {
     }
 
     private IssueResponse toIssueResponse(Issue issue) {
+        String supplierName = issue.getSupplierId() != null
+                ? supplierRepository.findById(issue.getSupplierId()).map(Supplier::getName).orElse(null)
+                : null;
+
         List<IssueResponse.Item> items = issueItemRepository.findByIssueIdOrderById(issue.getId()).stream()
                 .map(item -> {
                     Product product = productRepository.findById(item.getProductId()).orElse(null);
@@ -456,6 +502,8 @@ public class InventoryService {
         return IssueResponse.builder()
                 .id(issue.getId())
                 .issueNo(issue.getIssueNo())
+                .supplierId(issue.getSupplierId())
+                .supplierName(supplierName)
                 .issueDate(issue.getIssueDate())
                 .receiverName(issue.getReceiverName())
                 .receiverAddress(issue.getReceiverAddress())

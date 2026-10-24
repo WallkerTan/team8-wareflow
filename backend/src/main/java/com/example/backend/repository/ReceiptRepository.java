@@ -20,12 +20,14 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
 
     @Query("""
             SELECT r FROM Receipt r
-            WHERE (:status IS NULL OR r.status = :status)
+            WHERE (:userId IS NULL OR r.createdBy = :userId)
+              AND (:status IS NULL OR r.status = :status)
               AND (:supplierId IS NULL OR r.supplierId = :supplierId)
               AND (:fromDate IS NULL OR r.receiptDate >= :fromDate)
               AND (:toDate IS NULL OR r.receiptDate <= :toDate)
             """)
-    Page<Receipt> search(@Param("status") DocumentStatus status,
+    Page<Receipt> search(@Param("userId") Long userId,
+                         @Param("status") DocumentStatus status,
                          @Param("supplierId") Long supplierId,
                          @Param("fromDate") LocalDate fromDate,
                          @Param("toDate") LocalDate toDate,

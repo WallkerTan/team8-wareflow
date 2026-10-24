@@ -65,7 +65,7 @@ export default function ReceiptsPage() {
         try {
             const [supRes, prodRes] = await Promise.all([
                 supplierService.getSuppliers(),
-                productService.getProducts({ size: 100 }),
+                productService.getProducts({ size: 500 }),
             ]);
             setSuppliers(supRes);
             setAvailableProducts(prodRes.content);
@@ -105,9 +105,16 @@ export default function ReceiptsPage() {
         loadReceipts(0);
     }, [statusFilter, supplierFilter, fromDate, toDate, size]);
 
-    // Dynamic Items form handlers
+    // When supplier changes in the form, reset items to avoid cross-supplier product mixes
+    const handleFormSupplierChange = (newSupplierId: number) => {
+        setSupplierId(newSupplierId);
+        const firstProduct = availableProducts.find((p) => p.supplierId === newSupplierId);
+        setItems([{ productId: firstProduct?.id || 0, quantity: 1, unitPrice: firstProduct?.price || 0 }]);
+    };
+
     const addItemRow = () => {
-        setItems([...items, { productId: availableProducts[0]?.id || 0, quantity: 1, unitPrice: 0 }]);
+        const firstProduct = availableProducts.find((p) => p.supplierId === supplierId);
+        setItems([...items, { productId: firstProduct?.id || 0, quantity: 1, unitPrice: 0 }]);
     };
 
     const removeItemRow = (index: number) => {
@@ -131,14 +138,18 @@ export default function ReceiptsPage() {
     };
 
     const resetForm = () => {
-        setSupplierId(suppliers[0]?.id);
+        const firstSupplier = suppliers[0];
+        const firstProduct = firstSupplier
+            ? availableProducts.find((p) => p.supplierId === firstSupplier.id)
+            : undefined;
+        setSupplierId(firstSupplier?.id);
         setReceiptDate(new Date().toISOString().split("T")[0]);
         setNote("");
         setItems([
             {
-                productId: availableProducts[0]?.id || 0,
+                productId: firstProduct?.id || 0,
                 quantity: 1,
-                unitPrice: availableProducts[0]?.price || 0,
+                unitPrice: firstProduct?.price || 0,
             },
         ]);
     };
@@ -539,7 +550,7 @@ export default function ReceiptsPage() {
                             <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
                             <select
                                 value={supplierId ?? ""}
-                                onChange={(e) => setSupplierId(Number(e.target.value))}
+                                onChange={(e) => handleFormSupplierChange(Number(e.target.value))}
                                 required
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
@@ -599,7 +610,9 @@ export default function ReceiptsPage() {
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
-                                        {availableProducts.map((p) => (
+                                        {availableProducts
+                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})
                                             </option>
@@ -677,7 +690,7 @@ export default function ReceiptsPage() {
                             <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
                             <select
                                 value={supplierId ?? ""}
-                                onChange={(e) => setSupplierId(Number(e.target.value))}
+                                onChange={(e) => handleFormSupplierChange(Number(e.target.value))}
                                 required
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                             >
@@ -736,7 +749,9 @@ export default function ReceiptsPage() {
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
-                                        {availableProducts.map((p) => (
+                                        {availableProducts
+                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})
                                             </option>

@@ -33,7 +33,7 @@ public class ReceiptController {
 
     private final InventoryService inventoryService;
 
-    /** GET /api/receipts - list + filter theo status/ngày. */
+    /** GET /api/receipts - list + filter theo status/ngày của kho hiện tại. */
     @GetMapping
     public ResponseEntity<PageResponse<ReceiptResponse>> list(
             @RequestParam(required = false) DocumentStatus status,
@@ -41,13 +41,15 @@ public class ReceiptController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(inventoryService.searchReceipts(status, supplierId, fromDate, toDate, page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(inventoryService.searchReceipts(principal.getId(), status, supplierId, fromDate, toDate, page, size));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReceiptResponse> get(@PathVariable Long id) {
-        return ResponseEntity.ok(inventoryService.findReceiptById(id));
+    public ResponseEntity<ReceiptResponse> get(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(inventoryService.findReceiptById(id, principal.getId()));
     }
 
     /** POST /api/receipts - tạo phiếu nhập DRAFT. */
@@ -68,8 +70,9 @@ public class ReceiptController {
 
     /** DELETE /api/receipts/{id} - xoá phiếu nhập DRAFT. */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        inventoryService.deleteReceipt(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                       @AuthenticationPrincipal UserPrincipal principal) {
+        inventoryService.deleteReceipt(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 

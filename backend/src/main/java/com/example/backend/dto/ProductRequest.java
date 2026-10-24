@@ -30,6 +30,9 @@ public class ProductRequest {
 
     private Long categoryId;
 
+    @NotNull(message = "Nhà cung cấp không được để trống")
+    private Long supplierId;
+
     private String unit;
 
     private BigDecimal price;

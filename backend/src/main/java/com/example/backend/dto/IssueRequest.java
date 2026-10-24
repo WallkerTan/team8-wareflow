@@ -20,6 +20,9 @@ import java.util.List;
 @AllArgsConstructor
 public class IssueRequest {
 
+    @NotNull(message = "Nhà cung cấp không được để trống")
+    private Long supplierId;
+
     private LocalDate issueDate;
 
     @NotBlank(message = "Tên người nhận không được để trống")

@@ -51,17 +51,18 @@ public class ShipmentService {
     private final IssueRepository issueRepository;
 
     @Transactional(readOnly = true)
-    public PageResponse<ShipmentResponse> search(ShipmentStatus status, Long issueId, int page, int size) {
-        Page<Shipment> result = shipmentRepository.search(status, issueId,
+    public PageResponse<ShipmentResponse> search(Long userId, ShipmentStatus status, Long issueId, int page, int size) {
+        Page<Shipment> result = shipmentRepository.search(userId, status, issueId,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         return PageResponse.of(result.map(this::toResponse));
     }
 
     @Transactional(readOnly = true)
-    public ShipmentResponse findById(Long id) {
-        return shipmentRepository.findById(id)
-                .map(this::toResponse)
+    public ShipmentResponse findById(Long id, Long userId) {
+        Shipment shipment = shipmentRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("giao hàng", id));
+        validateShipmentOwner(shipment, userId);
+        return toResponse(shipment);
     }
 
     @Transactional
@@ -69,6 +70,9 @@ public class ShipmentService {
         Issue issue = issueRepository.findById(request.getIssueId())
                 .orElseThrow(() -> ResourceNotFoundException.of("phiếu xuất", request.getIssueId()));
 
+        if (issue.getCreatedBy() != null && !issue.getCreatedBy().equals(userId)) {
+            throw new BusinessException("Bạn không thể tạo giao hàng cho phiếu xuất của kho khác");
+        }
         if (issue.getStatus() != DocumentStatus.CONFIRMED) {
             throw new BusinessException("Chỉ tạo giao hàng từ phiếu xuất đã CONFIRMED");
         }
@@ -105,6 +109,7 @@ public class ShipmentService {
     public ShipmentResponse updateStatus(Long id, UpdateShipmentStatusRequest request, Long userId) {
         Shipment shipment = shipmentRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("giao hàng", id));
+        validateShipmentOwner(shipment, userId);
 
         ShipmentStatus target = request.getStatus();
         if (target == shipment.getStatus()) {
@@ -139,11 +144,11 @@ public class ShipmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<ShipmentLogResponse> getLogs(Long shipmentId) {
-        if (!shipmentRepository.existsById(shipmentId)) {
-            throw ResourceNotFoundException.of("giao hàng", shipmentId);
-        }
-        return shipmentLogRepository.findByShipmentIdOrderByIdAsc(shipmentId).stream()
+    public List<ShipmentLogResponse> getLogs(Long id, Long userId) {
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("giao hàng", id));
+        validateShipmentOwner(shipment, userId);
+        return shipmentLogRepository.findByShipmentIdOrderByIdAsc(id).stream()
                 .map(log -> ShipmentLogResponse.builder()
                         .id(log.getId())
                         .shipmentId(log.getShipmentId())
@@ -155,6 +160,15 @@ public class ShipmentService {
                         .build())
                 .toList();
     }
+
+    private void validateShipmentOwner(Shipment shipment, Long userId) {
+        Issue issue = issueRepository.findById(shipment.getIssueId()).orElse(null);
+        if (issue != null && issue.getCreatedBy() != null && !issue.getCreatedBy().equals(userId)) {
+            throw new BusinessException("Bạn không có quyền truy cập giao hàng của kho khác");
+        }
+    }
+
+
 
     private ShipmentResponse toResponse(Shipment shipment) {
         String issueNo = issueRepository.findById(shipment.getIssueId())
