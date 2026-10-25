@@ -20,6 +20,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsByOwnerIdAndSkuIgnoreCase(Long ownerId, String sku);
 
+    boolean existsByOwnerId(Long ownerId);
+
     Optional<Product> findByIdAndOwnerId(Long id, Long ownerId);
 
     List<Product> findByOwnerIdAndSupplierId(Long ownerId, Long supplierId);

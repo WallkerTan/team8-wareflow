@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Building2, Plus, Search, Edit2, Trash2, RefreshCw, Loader2, AlertCircle, Phone, Mail, MapPin } from "lucide-react";
+import { Building2, Plus, Search, Edit2, Trash2, RefreshCw, Loader2, AlertCircle, Phone, Mail, MapPin, PackagePlus } from "lucide-react";
 import { Modal, Popconfirm } from "antd";
 import { supplierService } from "../../api/services/supplierService";
 import type { SupplierRequest, SupplierResponse } from "../../types";
 import { getErrorMessage } from "../../api/client";
 import { formatDateTime } from "../../api/formatters";
+import { adminService } from "../../api/services/adminService";
+import type { UserResponse } from "../../types";
 
 export default function AdminSuppliersPage() {
     const [suppliers, setSuppliers] = useState<SupplierResponse[]>([]);
@@ -24,6 +26,11 @@ export default function AdminSuppliersPage() {
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
     const [active, setActive] = useState(true);
+    const [productSupplier, setProductSupplier] = useState<SupplierResponse | null>(null);
+    const [warehouseUsers, setWarehouseUsers] = useState<UserResponse[]>([]);
+    const [productOwnerId, setProductOwnerId] = useState<number | undefined>();
+    const [productSku, setProductSku] = useState("");
+    const [productName, setProductName] = useState("");
 
     const loadSuppliers = async () => {
         setLoading(true);
@@ -39,7 +46,33 @@ export default function AdminSuppliersPage() {
 
     useEffect(() => {
         loadSuppliers();
+        adminService.getUsers({ role: "WAREHOUSE_OWNER", size: 500 }).then((res) => setWarehouseUsers(res.content)).catch(() => {});
     }, []);
+
+    const submitSupplierProduct = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!productSupplier || !productOwnerId || !productSku.trim() || !productName.trim()) return;
+        setSubmitting(true);
+        try {
+            await adminService.createProductForWarehouse({
+                ownerId: productOwnerId,
+                supplierId: productSupplier.id,
+                sku: productSku.trim().toUpperCase(),
+                name: productName.trim(),
+                minStock: 0,
+                stockQuantity: 0,
+                active: true,
+            });
+            toast.success(`Đã thêm sản phẩm vào nhà cung cấp ${productSupplier.name}`);
+            setProductSupplier(null);
+            setProductSku("");
+            setProductName("");
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Không thể thêm sản phẩm"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const filteredSuppliers = suppliers.filter((s) =>
         `${s.name} ${s.email || ""} ${s.phone || ""} ${s.address || ""}`
@@ -257,6 +290,13 @@ export default function AdminSuppliersPage() {
                                         <td className="py-3.5 px-4 text-right">
                                             <div className="flex items-center justify-end gap-1.5">
                                                 <button
+                                                    onClick={() => { setProductSupplier(s); setProductOwnerId(warehouseUsers[0]?.id); setProductSku(""); setProductName(""); }}
+                                                    className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 transition cursor-pointer"
+                                                    title="Thêm sản phẩm cho nhà cung cấp"
+                                                >
+                                                    <PackagePlus size={15} />
+                                                </button>
+                                                <button
                                                     onClick={() => openEditModal(s)}
                                                     className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 transition cursor-pointer"
                                                     title="Sửa thông tin"
@@ -369,6 +409,29 @@ export default function AdminSuppliersPage() {
                             {submitting && <Loader2 size={16} className="animate-spin text-white" />}
                             Tạo nhà cung cấp
                         </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal Edit Supplier */}
+            <Modal
+                title={<span className="text-slate-900 text-lg font-bold">Thêm sản phẩm cho {productSupplier?.name}</span>}
+                open={!!productSupplier}
+                onCancel={() => setProductSupplier(null)}
+                footer={null}
+                destroyOnClose
+            >
+                <form onSubmit={submitSupplierProduct} className="space-y-4 mt-4">
+                    <label className="block text-xs font-semibold text-slate-700">Kho nhận sản phẩm *</label>
+                    <select required value={productOwnerId ?? ""} onChange={(e) => setProductOwnerId(Number(e.target.value))} className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm">
+                        <option value="">-- Chọn kho --</option>
+                        {warehouseUsers.map((owner) => <option key={owner.id} value={owner.id}>{owner.fullName} ({owner.email})</option>)}
+                    </select>
+                    <input required value={productSku} onChange={(e) => setProductSku(e.target.value)} placeholder="Mã SKU" className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+                    <input required value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Tên sản phẩm" className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
+                    <div className="flex justify-end gap-2">
+                        <button type="button" onClick={() => setProductSupplier(null)} className="px-4 py-2 rounded-lg border">Hủy</button>
+                        <button disabled={submitting || !warehouseUsers.length} className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50">Thêm sản phẩm</button>
                     </div>
                 </form>
             </Modal>

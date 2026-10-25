@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
     Package,
-    Plus,
     Search,
     AlertTriangle,
     Edit2,
@@ -221,23 +220,7 @@ export default function ProductsPage() {
                         <RefreshCw size={15} className={loading ? "animate-spin text-blue-600" : "text-slate-500"} />
                         Làm mới
                     </button>
-                    <button
-                        onClick={() => {
-                            setSku("");
-                            setName("");
-                            setDescription("");
-                            setFormSupplierId(suppliers[0]?.id);
-                            setCategoryId(categories[0]?.id);
-                            setUnit("Cái");
-                            setPrice(undefined);
-                            setStockQuantity(0);
-                            setMinStock(5);
-                            setIsCreateOpen(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-sm shadow-blue-500/20 cursor-pointer"
-                    >
-                        <Plus size={16} /> Thêm sản phẩm
-                    </button>
+                    <span className="text-xs text-slate-500">Liên hệ admin để thêm sản phẩm vào nhà cung cấp</span>
                 </div>
             </div>
 
@@ -469,10 +452,10 @@ export default function ProductsPage() {
             >
                 <form onSubmit={handleCreate} className="space-y-4 mt-4">
                     <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp</label>
                         <select
                             value={formSupplierId ?? ""}
-                            onChange={(e) => setFormSupplierId(e.target.value ? Number(e.target.value) : undefined)}
+                            disabled
                             required
                             className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         >
@@ -619,10 +602,10 @@ export default function ProductsPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Nhà cung cấp (chỉ admin được thay đổi)</label>
                         <select
                             value={formSupplierId ?? ""}
-                            onChange={(e) => setFormSupplierId(e.target.value ? Number(e.target.value) : undefined)}
+                            disabled
                             className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-blue-500"
                         >
                             <option value="">-- Chọn nhà cung cấp --</option>

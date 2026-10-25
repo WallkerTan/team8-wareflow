@@ -107,6 +107,19 @@ public class UserService {
     }
 
     @Transactional
+    public void delete(Long id, UserPrincipal currentUser) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("người dùng", id));
+        if (Objects.equals(id, currentUser.getId())) {
+            throw new BusinessException("Không thể xóa tài khoản đang đăng nhập");
+        }
+        if (user.getRole() == Role.ADMIN && userRepository.countByRole(Role.ADMIN) <= 1) {
+            throw new BusinessException("Phải còn ít nhất một tài khoản ADMIN");
+        }
+        userRepository.delete(user);
+    }
+
+    @Transactional
     public UserResponse updateProfile(UserPrincipal principal, UpdateProfileRequest request) {
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> ResourceNotFoundException.of("người dùng", principal.getId()));

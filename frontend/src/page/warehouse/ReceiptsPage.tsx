@@ -607,11 +607,12 @@ export default function ReceiptsPage() {
                                         value={row.productId}
                                         onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
                                         required
+                                        disabled={!supplierId}
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
                                         {availableProducts
-                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .filter((p) => p.supplierId === supplierId)
                                             .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})
@@ -746,11 +747,12 @@ export default function ReceiptsPage() {
                                         value={row.productId}
                                         onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
                                         required
+                                        disabled={!supplierId}
                                         className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                     >
                                         <option value={0}>-- Chọn sản phẩm --</option>
                                         {availableProducts
-                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .filter((p) => p.supplierId === supplierId)
                                             .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})

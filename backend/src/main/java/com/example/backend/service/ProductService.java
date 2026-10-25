@@ -11,6 +11,8 @@ import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.CategoryRepository;
 import com.example.backend.repository.ProductRepository;
 import com.example.backend.repository.SupplierRepository;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> search(Long userId, Long supplierId, Long categoryId, String keyword, boolean lowStock, int page, int size) {
@@ -72,6 +75,32 @@ public class ProductService {
     }
 
     @Transactional
+    public ProductResponse createForOwner(ProductRequest request, Long ownerId) {
+        if (!userRepository.existsByIdAndRole(ownerId, Role.WAREHOUSE_OWNER)) {
+            throw new BusinessException("Kho không hợp lệ");
+        }
+        if (productRepository.existsByOwnerIdAndSkuIgnoreCase(ownerId, request.getSku().trim())) {
+            throw new BusinessException("Mã SKU đã tồn tại trong kho này");
+        }
+        validateCategory(request.getCategoryId());
+        validateSupplier(request.getSupplierId());
+        Product product = Product.builder()
+                .ownerId(ownerId)
+                .supplierId(request.getSupplierId())
+                .sku(request.getSku().trim().toUpperCase())
+                .name(request.getName().trim())
+                .description(request.getDescription())
+                .categoryId(request.getCategoryId())
+                .unit(request.getUnit())
+                .price(request.getPrice())
+                .stockQuantity(request.getStockQuantity() == null ? 0 : request.getStockQuantity())
+                .minStock(request.getMinStock() == null ? 0 : request.getMinStock())
+                .active(request.getActive() == null ? Boolean.TRUE : request.getActive())
+                .build();
+        return toResponse(productRepository.save(product));
+    }
+
+    @Transactional
     public ProductResponse update(Long id, ProductRequest request, Long userId) {
         Product product = productRepository.findByIdAndOwnerId(id, userId)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
@@ -82,9 +111,8 @@ public class ProductService {
             throw new BusinessException("Mã SKU đã tồn tại trong kho của bạn");
         }
         validateCategory(request.getCategoryId());
-        if (request.getSupplierId() != null) {
-            validateSupplier(request.getSupplierId());
-            product.setSupplierId(request.getSupplierId());
+        if (request.getSupplierId() != null && !request.getSupplierId().equals(product.getSupplierId())) {
+            throw new BusinessException("Chỉ ADMIN mới được thay đổi nhà cung cấp của sản phẩm");
         }
 
         if (StringUtils.hasText(request.getSku())) {
