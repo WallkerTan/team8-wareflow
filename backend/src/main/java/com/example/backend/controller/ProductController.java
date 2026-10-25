@@ -21,15 +21,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('WAREHOUSE_OWNER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OWNER')")
 public class ProductController {
 
     private final ProductService productService;
 
-    /** GET /api/products - list + filter supplier/category/keyword/lowStock theo kho hiện tại. */
+    /** GET /api/products - list + filter supplier/category/keyword/lowStock theo kho hiện tại (WAREHOUSE_OWNER). */
     @GetMapping
     public ResponseEntity<PageResponse<ProductResponse>> list(
             @RequestParam(required = false) Long supplierId,
@@ -48,23 +50,44 @@ public class ProductController {
         return ResponseEntity.ok(productService.findById(id, principal.getId()));
     }
 
-    @PostMapping
-    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request,
-                                                  @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request, principal.getId()));
+    /**
+     * GET /api/products/by-supplier/{supplierId}
+     * Lấy tất cả sản phẩm thuộc một nhà cung cấp. Cả ADMIN và WAREHOUSE_OWNER đều được xem.
+     */
+    @GetMapping("/by-supplier/{supplierId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OWNER')")
+    public ResponseEntity<List<ProductResponse>> listBySupplier(@PathVariable Long supplierId) {
+        return ResponseEntity.ok(productService.findBySupplier(supplierId));
     }
 
+    /**
+     * POST /api/products - Chỉ ADMIN được tạo sản phẩm cho Nhà cung cấp.
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request,
+                                                  @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request, request.getOwnerId()));
+    }
+
+    /**
+     * PUT /api/products/{id} - Chỉ ADMIN được sửa sản phẩm.
+     */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id,
                                                   @Valid @RequestBody ProductRequest request,
                                                   @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(productService.update(id, request, principal.getId()));
+        return ResponseEntity.ok(productService.update(id, request, request.getOwnerId()));
     }
 
+    /**
+     * DELETE /api/products/{id} - Chỉ ADMIN được xóa sản phẩm.
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id,
-                                       @AuthenticationPrincipal UserPrincipal principal) {
-        productService.delete(id, principal.getId());
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        productService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

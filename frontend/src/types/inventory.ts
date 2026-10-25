@@ -55,6 +55,8 @@ export interface ProductRequest {
     name: string;
     description?: string;
     supplierId: number;
+    /** Admin: ID của warehouse owner mà sản phẩm này thuộc về. */
+    ownerId?: number;
     categoryId?: number;
     unit?: string;
     price?: number;
