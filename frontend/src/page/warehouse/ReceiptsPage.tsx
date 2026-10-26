@@ -171,6 +171,15 @@ export default function ReceiptsPage() {
             return;
         }
 
+        const invalidItem = validItems.find((it) => {
+            const p = availableProducts.find((prod) => prod.id === it.productId);
+            return !p || p.supplierId !== supplierId;
+        });
+        if (invalidItem) {
+            toast.error("Tất cả sản phẩm phải thuộc danh mục của nhà cung cấp đã chọn");
+            return;
+        }
+
         setSubmitting(true);
         try {
             const payload: ReceiptRequest = {
@@ -215,6 +224,15 @@ export default function ReceiptsPage() {
         const validItems = items.filter((it) => it.productId > 0 && it.quantity > 0);
         if (validItems.length === 0) {
             toast.error("Vui lòng nhập hợp lệ ít nhất 1 sản phẩm");
+            return;
+        }
+
+        const invalidItem = validItems.find((it) => {
+            const p = availableProducts.find((prod) => prod.id === it.productId);
+            return !p || p.supplierId !== supplierId;
+        });
+        if (invalidItem) {
+            toast.error("Tất cả sản phẩm phải thuộc danh mục của nhà cung cấp đã chọn");
             return;
         }
 
@@ -573,6 +591,15 @@ export default function ReceiptsPage() {
                         </div>
                     </div>
 
+                    {supplierId && availableProducts.filter((p) => p.supplierId === supplierId).length === 0 && (
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+                            <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                            <span>
+                                Nhà cung cấp này hiện chưa có sản phẩm nào trong hệ thống. Vui lòng liên hệ Admin để thêm sản phẩm cho nhà cung cấp trước khi lập phiếu nhập.
+                            </span>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
                         <input
@@ -593,7 +620,8 @@ export default function ReceiptsPage() {
                             <button
                                 type="button"
                                 onClick={addItemRow}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 text-xs font-semibold transition cursor-pointer"
+                                disabled={!supplierId || availableProducts.filter((p) => p.supplierId === supplierId).length === 0}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-200 text-xs font-semibold transition cursor-pointer"
                             >
                                 <Plus size={13} /> Thêm dòng
                             </button>
@@ -602,16 +630,19 @@ export default function ReceiptsPage() {
                         {items.map((row, idx) => (
                             <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                 <div className="col-span-5">
-                                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Sản phẩm *</label>
+                                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Sản phẩm của NCC *</label>
                                     <select
                                         value={row.productId}
                                         onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
                                         required
-                                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                                        disabled={!supplierId}
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
                                     >
-                                        <option value={0}>-- Chọn sản phẩm --</option>
+                                        <option value={0}>
+                                            {supplierId ? "-- Chọn sản phẩm của nhà cung cấp --" : "-- Vui lòng chọn nhà cung cấp trước --"}
+                                        </option>
                                         {availableProducts
-                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .filter((p) => p.supplierId === supplierId)
                                             .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})
@@ -713,6 +744,15 @@ export default function ReceiptsPage() {
                         </div>
                     </div>
 
+                    {supplierId && availableProducts.filter((p) => p.supplierId === supplierId).length === 0 && (
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+                            <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                            <span>
+                                Nhà cung cấp này hiện chưa có sản phẩm nào trong hệ thống. Vui lòng liên hệ Admin để thêm sản phẩm cho nhà cung cấp trước khi cập nhật phiếu nhập.
+                            </span>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Ghi chú</label>
                         <input
@@ -732,7 +772,8 @@ export default function ReceiptsPage() {
                             <button
                                 type="button"
                                 onClick={addItemRow}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 text-xs font-semibold transition cursor-pointer"
+                                disabled={!supplierId || availableProducts.filter((p) => p.supplierId === supplierId).length === 0}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-200 text-xs font-semibold transition cursor-pointer"
                             >
                                 <Plus size={13} /> Thêm dòng
                             </button>
@@ -741,16 +782,19 @@ export default function ReceiptsPage() {
                         {items.map((row, idx) => (
                             <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
                                 <div className="col-span-5">
-                                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Sản phẩm *</label>
+                                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Sản phẩm của NCC *</label>
                                     <select
                                         value={row.productId}
                                         onChange={(e) => updateItem(idx, "productId", Number(e.target.value))}
                                         required
-                                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                                        disabled={!supplierId}
+                                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
                                     >
-                                        <option value={0}>-- Chọn sản phẩm --</option>
+                                        <option value={0}>
+                                            {supplierId ? "-- Chọn sản phẩm của nhà cung cấp --" : "-- Vui lòng chọn nhà cung cấp trước --"}
+                                        </option>
                                         {availableProducts
-                                            .filter((p) => !supplierId || p.supplierId === supplierId)
+                                            .filter((p) => p.supplierId === supplierId)
                                             .map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.name} ({p.sku})

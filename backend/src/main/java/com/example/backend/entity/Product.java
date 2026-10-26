@@ -23,8 +23,8 @@ import java.math.BigDecimal;
 })
 public class Product extends BaseEntity {
 
-    /** ID của chủ kho (Warehouse Owner) sở hữu sản phẩm này. */
-    @Column(name = "owner_id", nullable = false)
+    /** ID của chủ kho (Warehouse Owner) sở hữu sản phẩm này (optional nếu do Admin tạo chung theo NCC). */
+    @Column(name = "owner_id")
     private Long ownerId;
 
     /** ID của Nhà cung cấp cung ứng sản phẩm này. */

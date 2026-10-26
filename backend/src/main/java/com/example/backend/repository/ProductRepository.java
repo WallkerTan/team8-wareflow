@@ -24,13 +24,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByOwnerIdAndSupplierId(Long ownerId, Long supplierId);
 
+    /** Admin: lấy tất cả sản phẩm theo supplierId, không cần ownerId. */
+    List<Product> findBySupplierId(Long supplierId);
+
     /**
      * List + filter theo ownerId, supplierId, category, keyword (sku, name) và cảnh báo tồn thấp.
      * lowStock = true -> WHERE stock_quantity <= min_stock
      */
     @Query("""
             SELECT p FROM Product p
-            WHERE p.ownerId = :ownerId
+            WHERE (:ownerId IS NULL OR p.ownerId IS NULL OR p.ownerId = :ownerId)
               AND (:supplierId IS NULL OR p.supplierId = :supplierId)
               AND (:categoryId IS NULL OR p.categoryId = :categoryId)
               AND (:keyword IS NULL

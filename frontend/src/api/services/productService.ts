@@ -23,6 +23,12 @@ export const productService = {
         return response.data;
     },
 
+    /** Admin: lấy tất cả sản phẩm của một nhà cung cấp (không cần ownerId). */
+    getProductsBySupplier: async (supplierId: number): Promise<ProductResponse[]> => {
+        const response = await apiClient.get<ProductResponse[]>(`/api/products/by-supplier/${supplierId}`);
+        return response.data;
+    },
+
     createProduct: async (data: ProductRequest): Promise<ProductResponse> => {
         const response = await apiClient.post<ProductResponse>("/api/products", data);
         return response.data;
@@ -33,6 +39,7 @@ export const productService = {
         return response.data;
     },
 
+    /** Admin: xóa sản phẩm. */
     deleteProduct: async (id: number): Promise<void> => {
         await apiClient.delete(`/api/products/${id}`);
     },
