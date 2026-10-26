@@ -17,9 +17,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductRequest {
 
-    /** Chỉ dùng bởi API ADMIN khi tạo sản phẩm cho một kho. */
-    private Long ownerId;
-
     @NotBlank(message = "SKU không được để trống")
     @Size(max = 100, message = "SKU tối đa 100 ký tự")
     private String sku;
@@ -35,6 +32,9 @@ public class ProductRequest {
 
     @NotNull(message = "Nhà cung cấp không được để trống")
     private Long supplierId;
+
+    /** Chỉ admin cần cung cấp: ID của warehouse owner mà sản phẩm thuộc về. */
+    private Long ownerId;
 
     private String unit;
 

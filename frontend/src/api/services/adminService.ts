@@ -7,8 +7,6 @@ import type {
     UpdateUserRequest,
     UserResponse,
     UserStatus,
-    ProductRequest,
-    ProductResponse,
 } from "../../types";
 
 export interface UserFilterParams {
@@ -46,15 +44,6 @@ export const adminService = {
         const response = await apiClient.patch<UserResponse>(`/api/users/${id}/status`, {
             status,
         });
-        return response.data;
-    },
-
-    deleteUser: async (id: number): Promise<void> => {
-        await apiClient.delete(`/api/users/${id}`);
-    },
-
-    createProductForWarehouse: async (data: ProductRequest & { ownerId: number }): Promise<ProductResponse> => {
-        const response = await apiClient.post<ProductResponse>("/api/admin/products", data);
         return response.data;
     },
 };

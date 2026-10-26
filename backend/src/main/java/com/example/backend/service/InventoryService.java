@@ -80,11 +80,10 @@ public class InventoryService {
         if (!supplierRepository.existsById(request.getSupplierId())) {
             throw new BusinessException("Nhà cung cấp với id = " + request.getSupplierId() + " không tồn tại");
         }
-        // Validate sản phẩm thuộc về kho hiện tại và thuộc đúng Nhà cung cấp đã chọn
         Map<Long, Integer> quantities = new HashMap<>();
         for (ReceiptRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại"));
             if (!request.getSupplierId().equals(product.getSupplierId())) {
                 throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
@@ -102,7 +101,7 @@ public class InventoryService {
         receipt = receiptRepository.save(receipt);
 
         for (ReceiptRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
+            Product product = productRepository.findById(item.getProductId()).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             receiptItemRepository.save(ReceiptItem.builder()
@@ -127,8 +126,8 @@ public class InventoryService {
             throw new BusinessException("Nhà cung cấp với id = " + targetSupplierId + " không tồn tại");
         }
         for (ReceiptRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại"));
             if (!targetSupplierId.equals(product.getSupplierId())) {
                 throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
@@ -198,8 +197,8 @@ public class InventoryService {
                 .toList();
 
         for (Long productId : productIds) {
-            Product product = productRepository.findByIdForUpdateAndOwnerId(productId, userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findByIdForUpdate(productId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại"));
             int quantity = items.stream()
                     .filter(i -> i.getProductId().equals(productId))
                     .mapToInt(ReceiptItem::getQuantity)
@@ -254,8 +253,8 @@ public class InventoryService {
             throw new BusinessException("Nhà cung cấp với id = " + request.getSupplierId() + " không tồn tại");
         }
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại"));
             if (!request.getSupplierId().equals(product.getSupplierId())) {
                 throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
@@ -275,7 +274,7 @@ public class InventoryService {
         issue = issueRepository.save(issue);
 
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
+            Product product = productRepository.findById(item.getProductId()).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             issueItemRepository.save(IssueItem.builder()
@@ -300,8 +299,8 @@ public class InventoryService {
             throw new BusinessException("Nhà cung cấp với id = " + targetSupplierId + " không tồn tại");
         }
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + item.getProductId() + " không tồn tại"));
             if (!targetSupplierId.equals(product.getSupplierId())) {
                 throw new BusinessException("Sản phẩm '" + product.getName() + "' không thuộc nhà cung cấp đã chọn");
             }
@@ -331,7 +330,7 @@ public class InventoryService {
         issueItemRepository.deleteByIssueId(issue.getId());
         issueItemRepository.flush();
         for (IssueRequest.Item item : request.getItems()) {
-            Product product = productRepository.findByIdAndOwnerId(item.getProductId(), userId).orElseThrow();
+            Product product = productRepository.findById(item.getProductId()).orElseThrow();
             BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO);
             issueItemRepository.save(IssueItem.builder()
@@ -384,17 +383,17 @@ public class InventoryService {
 
         // W9: kiểm tra tồn trước khi trừ (đọc đã khoá => không có lost update).
         for (Long productId : productIds) {
-            Product product = productRepository.findByIdForUpdateAndOwnerId(productId, userId)
-                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại trong kho của bạn"));
+            Product product = productRepository.findByIdForUpdate(productId)
+                    .orElseThrow(() -> new BusinessException("Sản phẩm với id = " + productId + " không tồn tại"));
             if (product.getStockQuantity() < required.get(productId)) {
                 throw new BusinessException(
                         "Sản phẩm '" + product.getName() + "' chỉ còn " + product.getStockQuantity()
-                                + " trong kho của bạn, không đủ để xuất " + required.get(productId));
+                                + " trong kho, không đủ để xuất " + required.get(productId));
             }
         }
 
         for (Long productId : productIds) {
-            Product product = productRepository.findByIdAndOwnerId(productId, userId).orElseThrow();
+            Product product = productRepository.findById(productId).orElseThrow();
             product.setStockQuantity(product.getStockQuantity() - required.get(productId));
             productRepository.save(product);
         }

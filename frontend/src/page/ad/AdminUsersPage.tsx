@@ -11,7 +11,6 @@ import {
     RefreshCw,
     Loader2,
     AlertCircle,
-    Trash2,
 } from "lucide-react";
 import { Modal, Popconfirm } from "antd";
 import { adminService } from "../../api/services/adminService";
@@ -95,16 +94,6 @@ export default function AdminUsersPage() {
             loadUsers();
         } catch (error) {
             toast.error(getErrorMessage(error, "Không thể cập nhật trạng thái người dùng"));
-        }
-    };
-
-    const handleDeleteUser = async (user: UserResponse) => {
-        try {
-            await adminService.deleteUser(user.id);
-            toast.success(`Đã xóa tài khoản ${user.email}`);
-            loadUsers(users.length === 1 && page > 0 ? page - 1 : page);
-        } catch (error) {
-            toast.error(getErrorMessage(error, "Không thể xóa người dùng"));
         }
     };
 
@@ -342,22 +331,6 @@ export default function AdminUsersPage() {
                                             {formatDateTime(u.createdAt)}
                                         </td>
                                         <td className="py-3.5 px-4 text-right">
-                                            <Popconfirm
-                                                title="Xóa tài khoản này?"
-                                                description={`Tài khoản ${u.email} sẽ bị xóa khỏi hệ thống.`}
-                                                okText="Xóa"
-                                                cancelText="Hủy"
-                                                okButtonProps={{ danger: true }}
-                                                onConfirm={() => handleDeleteUser(u)}
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className="p-1.5 mr-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition cursor-pointer"
-                                                    title="Xóa người dùng"
-                                                >
-                                                    <Trash2 size={15} />
-                                                </button>
-                                            </Popconfirm>
                                             <button
                                                 onClick={() => openEditModal(u)}
                                                 className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 transition cursor-pointer"

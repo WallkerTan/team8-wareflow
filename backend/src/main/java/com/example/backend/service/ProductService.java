@@ -11,8 +11,6 @@ import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.CategoryRepository;
 import com.example.backend.repository.ProductRepository;
 import com.example.backend.repository.SupplierRepository;
-import com.example.backend.repository.UserRepository;
-import com.example.backend.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -28,7 +28,6 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
-    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> search(Long userId, Long supplierId, Long categoryId, String keyword, boolean lowStock, int page, int size) {
@@ -45,45 +44,28 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductResponse findById(Long id, Long userId) {
-        return productRepository.findByIdAndOwnerId(id, userId)
-                .map(this::toResponse)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
+        return toResponse(product);
+    }
+
+    /** Admin & Warehouse Owner: lấy tất cả sản phẩm của một nhà cung cấp. */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findBySupplier(Long supplierId) {
+        return productRepository.findBySupplierId(supplierId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
-    public ProductResponse create(ProductRequest request, Long userId) {
-        if (productRepository.existsByOwnerIdAndSkuIgnoreCase(userId, request.getSku().trim())) {
-            throw new BusinessException("Mã SKU đã tồn tại trong kho của bạn");
+    public ProductResponse create(ProductRequest request, Long ownerId) {
+        if (productRepository.existsBySkuIgnoreCase(request.getSku().trim())) {
+            throw new BusinessException("Mã SKU '" + request.getSku().trim() + "' đã tồn tại trong hệ thống");
         }
         validateCategory(request.getCategoryId());
         validateSupplier(request.getSupplierId());
 
-        Product product = Product.builder()
-                .ownerId(userId)
-                .supplierId(request.getSupplierId())
-                .sku(request.getSku().trim().toUpperCase())
-                .name(request.getName().trim())
-                .description(request.getDescription())
-                .categoryId(request.getCategoryId())
-                .unit(request.getUnit())
-                .price(request.getPrice())
-                .stockQuantity(request.getStockQuantity() == null ? 0 : request.getStockQuantity())
-                .minStock(request.getMinStock() == null ? 0 : request.getMinStock())
-                .active(request.getActive() == null ? Boolean.TRUE : request.getActive())
-                .build();
-        return toResponse(productRepository.save(product));
-    }
-
-    @Transactional
-    public ProductResponse createForOwner(ProductRequest request, Long ownerId) {
-        if (!userRepository.existsByIdAndRole(ownerId, Role.WAREHOUSE_OWNER)) {
-            throw new BusinessException("Kho không hợp lệ");
-        }
-        if (productRepository.existsByOwnerIdAndSkuIgnoreCase(ownerId, request.getSku().trim())) {
-            throw new BusinessException("Mã SKU đã tồn tại trong kho này");
-        }
-        validateCategory(request.getCategoryId());
-        validateSupplier(request.getSupplierId());
         Product product = Product.builder()
                 .ownerId(ownerId)
                 .supplierId(request.getSupplierId())
@@ -101,18 +83,19 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse update(Long id, ProductRequest request, Long userId) {
-        Product product = productRepository.findByIdAndOwnerId(id, userId)
+    public ProductResponse update(Long id, ProductRequest request, Long ownerId) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
 
         if (StringUtils.hasText(request.getSku())
                 && !request.getSku().equalsIgnoreCase(product.getSku())
-                && productRepository.existsByOwnerIdAndSkuIgnoreCase(userId, request.getSku().trim())) {
-            throw new BusinessException("Mã SKU đã tồn tại trong kho của bạn");
+                && productRepository.existsBySkuIgnoreCase(request.getSku().trim())) {
+            throw new BusinessException("Mã SKU '" + request.getSku().trim() + "' đã tồn tại trong hệ thống");
         }
         validateCategory(request.getCategoryId());
-        if (request.getSupplierId() != null && !request.getSupplierId().equals(product.getSupplierId())) {
-            throw new BusinessException("Chỉ ADMIN mới được thay đổi nhà cung cấp của sản phẩm");
+        if (request.getSupplierId() != null) {
+            validateSupplier(request.getSupplierId());
+            product.setSupplierId(request.getSupplierId());
         }
 
         if (StringUtils.hasText(request.getSku())) {
@@ -133,18 +116,24 @@ public class ProductService {
         if (request.getPrice() != null) {
             product.setPrice(request.getPrice());
         }
+        if (request.getStockQuantity() != null) {
+            product.setStockQuantity(request.getStockQuantity());
+        }
         if (request.getMinStock() != null) {
             product.setMinStock(request.getMinStock());
         }
         if (request.getActive() != null) {
             product.setActive(request.getActive());
         }
+        if (ownerId != null) {
+            product.setOwnerId(ownerId);
+        }
         return toResponse(productRepository.save(product));
     }
 
     @Transactional
-    public void delete(Long id, Long userId) {
-        Product product = productRepository.findByIdAndOwnerId(id, userId)
+    public void delete(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
         productRepository.delete(product);
     }
