@@ -33,6 +33,9 @@ public class ProductRequest {
     @NotNull(message = "Nhà cung cấp không được để trống")
     private Long supplierId;
 
+    /** Chỉ admin cần cung cấp: ID của warehouse owner mà sản phẩm thuộc về. */
+    private Long ownerId;
+
     private String unit;
 
     private BigDecimal price;

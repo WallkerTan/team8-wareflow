@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -42,21 +44,30 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductResponse findById(Long id, Long userId) {
-        return productRepository.findByIdAndOwnerId(id, userId)
-                .map(this::toResponse)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
+        return toResponse(product);
+    }
+
+    /** Admin & Warehouse Owner: lấy tất cả sản phẩm của một nhà cung cấp. */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findBySupplier(Long supplierId) {
+        return productRepository.findBySupplierId(supplierId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
-    public ProductResponse create(ProductRequest request, Long userId) {
-        if (productRepository.existsByOwnerIdAndSkuIgnoreCase(userId, request.getSku().trim())) {
-            throw new BusinessException("Mã SKU đã tồn tại trong kho của bạn");
+    public ProductResponse create(ProductRequest request, Long ownerId) {
+        if (productRepository.existsBySkuIgnoreCase(request.getSku().trim())) {
+            throw new BusinessException("Mã SKU '" + request.getSku().trim() + "' đã tồn tại trong hệ thống");
         }
         validateCategory(request.getCategoryId());
         validateSupplier(request.getSupplierId());
 
         Product product = Product.builder()
-                .ownerId(userId)
+                .ownerId(ownerId)
                 .supplierId(request.getSupplierId())
                 .sku(request.getSku().trim().toUpperCase())
                 .name(request.getName().trim())
@@ -72,14 +83,14 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse update(Long id, ProductRequest request, Long userId) {
-        Product product = productRepository.findByIdAndOwnerId(id, userId)
+    public ProductResponse update(Long id, ProductRequest request, Long ownerId) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
 
         if (StringUtils.hasText(request.getSku())
                 && !request.getSku().equalsIgnoreCase(product.getSku())
-                && productRepository.existsByOwnerIdAndSkuIgnoreCase(userId, request.getSku().trim())) {
-            throw new BusinessException("Mã SKU đã tồn tại trong kho của bạn");
+                && productRepository.existsBySkuIgnoreCase(request.getSku().trim())) {
+            throw new BusinessException("Mã SKU '" + request.getSku().trim() + "' đã tồn tại trong hệ thống");
         }
         validateCategory(request.getCategoryId());
         if (request.getSupplierId() != null) {
@@ -105,18 +116,24 @@ public class ProductService {
         if (request.getPrice() != null) {
             product.setPrice(request.getPrice());
         }
+        if (request.getStockQuantity() != null) {
+            product.setStockQuantity(request.getStockQuantity());
+        }
         if (request.getMinStock() != null) {
             product.setMinStock(request.getMinStock());
         }
         if (request.getActive() != null) {
             product.setActive(request.getActive());
         }
+        if (ownerId != null) {
+            product.setOwnerId(ownerId);
+        }
         return toResponse(productRepository.save(product));
     }
 
     @Transactional
-    public void delete(Long id, Long userId) {
-        Product product = productRepository.findByIdAndOwnerId(id, userId)
+    public void delete(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("sản phẩm", id));
         productRepository.delete(product);
     }
