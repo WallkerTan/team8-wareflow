@@ -256,7 +256,7 @@ export default function AdminSuppliersPage() {
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+            <div className="m-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                         <Building2 className="text-blue-600" size={26} /> Quản lý Nhà cung cấp
@@ -291,7 +291,7 @@ export default function AdminSuppliersPage() {
             </div>
 
             {/* Filter Search */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <div className="m-4 bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                 <div className="relative flex-1 max-w-md">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
@@ -308,7 +308,7 @@ export default function AdminSuppliersPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="m-4 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
@@ -389,7 +389,7 @@ export default function AdminSuppliersPage() {
                                                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200 transition cursor-pointer"
                                                     title="Quản lý danh sách sản phẩm"
                                                 >
-                                                    <Boxes size={14} /> Sản phẩm
+                                                    <Boxes size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => openEditModal(s)}

@@ -7,6 +7,7 @@ Hệ thống quản lý kho hàng (warehouse management) - Spring Boot backend +
 | File | Nội dung |
 |---|---|
 | [DOCKER.md](./DOCKER.md) | Hướng dẫn chạy bằng Docker Compose (build, run, xử lý sự cố) |
+| [docs/CI_CD.md](./docs/CI_CD.md) | Hướng dẫn quy trình CI/CD GitHub Actions & triển khai GHCR |
 | [.github/followGit/dowload.md](./.github/followGit/dowload.md) | Quy trình clone / push / pull Git |
 | [docs/project/task.md](./docs/project/task.md) | Phân công nhiệm vụ |
 

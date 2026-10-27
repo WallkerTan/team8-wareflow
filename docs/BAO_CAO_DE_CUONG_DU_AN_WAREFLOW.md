@@ -206,6 +206,12 @@ BÁO CÁO ĐỀ CƯƠNG DỰ ÁN SƠ BỘ — WAREFLOW PLATFORM
 
 
 
+
+
+
+
+v.2
+
 📊 PHÂN CÔNG CÔNG VIỆC DỰ ÁN WAREFLOW — NHÓM 08 (4 THÀNH VIÊN)
 │
 ├── 1️⃣ PHẠM NHẬT TÂN (Leader) — Frontend Lead & Admin Module
@@ -326,3 +332,194 @@ BÁO CÁO ĐỀ CƯƠNG DỰ ÁN SƠ BỘ — WAREFLOW PLATFORM
         ├── Sprint 1: wareflow-153 [DevOps/PM] Trello Board
         ├── Sprint 4: wareflow-132 [Epic] Profile, wareflow-134 [FE] Profile UI
         └── (QA/QC xuyên suốt + SRS Docs)
+
+
+
+
+
+
+
+
+
+v.3
+PHÂN CHIA TASK V.3 — WAREFLOW (3 NGƯỜI GÁNH CHÍNH + QA HỖ TRỢ)
+│
+├── 1️⃣ PHẠM NHẬT TÂN — Frontend Lead & Admin FE
+│   │
+│   ├── GIAI ĐOẠN 1 — Sửa lỗi & Modal dùng chung (phần FE)
+│   │   └── Modal xác nhận thêm/sửa/xóa dùng chung
+│   │       ├── Component ConfirmModal
+│   │       │   ├── Props: title, message, type (create|update|delete), onConfirm, onCancel
+│   │       │   ├── Màu nút: xanh thêm / vàng sửa / đỏ xóa
+│   │       │   └── Trạng thái đang xử lý + báo lỗi khi thất bại
+│   │       ├── Thay toàn bộ alert/confirm mặc định ở admin + warehouse
+│   │       └── Hỗ trợ Linh gắn modal vào các form kho
+│   │
+│   ├── GIAI ĐOẠN 2 — Tài khoản & bảo mật (phần FE)
+│   │   ├── Form đăng ký/cập nhật: hiển thị lỗi 409 trùng SĐT/email rõ ràng
+│   │   ├── Upload avatar (users.avatar_url) — UI + gọi API
+│   │   ├── Upload ảnh sản phẩm (products.image_url) — UI + gọi API
+│   │   └── Luồng quên mật khẩu FE
+│   │       ├── Nhập email → nhập OTP 6 số → đặt lại mật khẩu
+│   │       ├── Đếm ngược 10 phút
+│   │       └── Báo sai tối đa 5 lần
+│   │
+│   ├── GIAI ĐOẠN 3 — Sản phẩm & mô hình kho (phần FE)
+│   │   ├── Form sản phẩm động theo loại kho/danh mục
+│   │   │   ├── Thực phẩm: ngày sản xuất, hạn sử dụng, điều kiện bảo quản
+│   │   │   ├── Công nghệ: bảo hành (tháng), serial/IMEI
+│   │   │   └── Gia dụng/khác: thuộc tính chung
+│   │   ├── Bảng sản phẩm: cột hạn sử dụng chỉ hiện khi là thực phẩm
+│   │   └── Form xuất kho: chọn ngày bán (issues.issue_date), mặc định hôm nay
+│   │
+│   └── GIAI ĐOẠN 6–7 — Admin FE & Đa tiền tệ (phần FE)
+│       ├── Trang quản trị admin (mục 7)
+│       │   ├── Tổng quan hệ thống
+│       │   ├── Tình hình từng kho
+│       │   ├── Bảng xếp hạng công ty
+│       │   └── Chi tiết một kho
+│       └── UI đa tiền tệ
+│           ├── Chọn currency trên form nhập/xuất
+│           └── Hiển thị số tiền gốc + quy đổi VND (logic chờ BE)
+│
+├── 2️⃣ ĐOÀN TRUNG NGUYÊN — Backend Lead & DB & DevOps
+│   │
+│   ├── GIAI ĐOẠN 1 — Backup & sửa lỗi 403
+│   │   ├── Backup DB trước khi migrate
+│   │   ├── Sửa lỗi 403 admin thêm sản phẩm cho nhà cung cấp
+│   │   │   ├── SecurityConfig: hasRole/hasAuthority, prefix ROLE_
+│   │   │   ├── Kiểm tra JWT có role ADMIN
+│   │   │   └── Endpoint lọc owner_id làm admin bị chặn (products.owner_id NOT NULL)
+│   │   └── Viết migration an toàn (Flyway/Liquibase hoặc SQL có rollback)
+│   │
+│   ├── GIAI ĐOẠN 2 — Tài khoản & bảo mật (phần BE)
+│   │   ├── Unique SĐT/email ở DB + validate service + trả 409 kèm message
+│   │   ├── users.avatar_url + API upload avatar (server/cloud)
+│   │   ├── Quên mật khẩu
+│   │   │   ├── Bảng password_reset_tokens
+│   │   │   ├── OTP 6 số qua email, hết hạn 10 phút, dùng một lần
+│   │   │   ├── Tối đa 5 lần sai
+│   │   │   └── Lưu mã đã băm, không lưu mã thô
+│   │   └── products.image_url + API upload ảnh sản phẩm
+│   │
+│   ├── GIAI ĐOẠN 3 — Sản phẩm & mô hình kho (BE + DB)
+│   │   ├── Migration
+│   │   │   ├── categories.business_type
+│   │   │   ├── products: manufacture_date, expiry_date, storage_condition, warranty_months, track_serial
+│   │   │   └── issues.issue_date cho phép chọn ngày
+│   │   ├── API sản phẩm trả field theo business_type + validate theo loại
+│   │   └── API ngày bán mặc định hôm nay
+│   │
+│   ├── GIAI ĐOẠN 4 — Email tự động
+│   │   ├── @Scheduled(cron, zone Asia/Ho_Chi_Minh) 8h sáng
+│   │   ├── Cảnh báo
+│   │   │   ├── Sắp hết hàng: stock_quantity <= min_stock
+│   │   │   ├── Sắp hết hạn: < 7 ngày
+│   │   │   └── Đã hết hạn
+│   │   ├── Gộp cảnh báo theo chủ kho vào 1 email
+│   │   └── Bảng notification_logs chống gửi trùng trong ngày
+│   │
+│   ├── GIAI ĐOẠN 5–6 — API báo cáo
+│   │   ├── API trang tình hình bán hàng (lọc owner_id từ JWT)
+│   │   │   ├── Thống kê doanh thu
+│   │   │   ├── Biểu đồ theo danh mục
+│   │   │   └── Lọc ngày/tuần/tháng
+│   │   ├── API thống kê khách hàng
+│   │   │   ├── Tên, doanh thu, SĐT, địa chỉ
+│   │   │   └── Sort doanh thu giảm dần
+│   │   ├── API dòng tiền
+│   │   │   ├── Bảng cash_transactions, cash_settings
+│   │   │   ├── Nguồn vốn / thu / chi / số dư
+│   │   │   └── Cảnh báo mức an toàn
+│   │   ├── API admin (mục 7)
+│   │   │   ├── Tổng quan hệ thống
+│   │   │   ├── Tình hình từng kho
+│   │   │   ├── Xếp hạng công ty (kho 0 đơn vẫn hiện)
+│   │   │   └── Chi tiết một kho
+│   │   └── Index thống kê + khóa ngoại toàn bộ
+│   │
+│   ├── GIAI ĐOẠN 7 — Đa tiền tệ (BE)
+│   │   ├── Bảng exchange_rates
+│   │   ├── API tỷ giá + cache ~1h + fallback tỷ giá gần nhất
+│   │   ├── Thêm sẵn cột currency, exchange_rate, total_amount, total_amount_vnd
+│   │   │   vào issues/receipts từ đầu
+│   │   ├── Logic quy đổi làm cuối
+│   │   └── Mọi báo cáo tính theo VND
+│   │
+│   └── DEVOPS XUYÊN SUỐT
+│       ├── Cập nhật Dockerfile/compose (mail, upload)
+│       └── CI chạy migration + test API
+│
+├── 3️⃣ PHẠM NGỌC LINH — Frontend Kho & Trang chủ kho
+│   │
+│   ├── GIAI ĐOẠN 2 — FE kho (tài khoản & bảo mật)
+│   │   ├── Áp dụng ConfirmModal (của Tân) vào toàn bộ form kho
+│   │   │   ├── Sản phẩm
+│   │   │   ├── Nhập kho
+│   │   │   ├── Xuất kho
+│   │   │   └── Shipment
+│   │   └── Form sản phẩm kho: gắn upload ảnh sản phẩm (UI do Tân làm)
+│   │
+│   ├── GIAI ĐOẠN 3 — FE kho (sản phẩm & mô hình kho)
+│   │   ├── Form nhập/xuất kho hiển thị field động theo loại kho/danh mục
+│   │   │   ├── Thực phẩm
+│   │   │   ├── Công nghệ
+│   │   │   └── Gia dụng/khác
+│   │   ├── Bảng sản phẩm kho: cột hạn sử dụng có điều kiện
+│   │   └── Form xuất kho: chọn ngày bán, mặc định hôm nay
+│   │
+│   └── GIAI ĐOẠN 5 — 3 trang chủ kho (mục 6)
+│       ├── 6.1 Trang tình hình bán hàng
+│       │   ├── Bảng thống kê số liệu & doanh thu
+│       │   ├── Biểu đồ cột (trục dọc doanh thu, trục ngang danh mục)
+│       │   └── Bộ lọc ngày/tuần/tháng
+│       ├── 6.2 Trang thống kê khách hàng
+│       │   ├── Cột: tên, doanh thu, SĐT, địa chỉ
+│       │   └── Sort doanh thu giảm dần
+│       ├── 6.3 Trang dòng tiền
+│       │   ├── Nguồn vốn (ban đầu, bổ sung)
+│       │   ├── Thu (doanh thu, thu khác)
+│       │   ├── Chi (nhập hàng, lương, thuê kho, vận chuyển, điện nước, thuế)
+│       │   └── Số dư + cảnh báo mức an toàn do người dùng đặt
+│       └── Tất cả lọc theo owner_id từ JWT (chỉ thấy số liệu của mình)
+│
+└── 4️⃣ VŨ THU TRANG — QA Lead, Scrum Master & Profile (hỗ trợ 3 người trên)
+    │
+    ├── QA/QC XUYÊN SUỐT (test từng giai đoạn 1→7)
+    │   ├── Giai đoạn 1
+    │   │   ├── Regression lỗi 403 admin thêm sản phẩm
+    │   │   └── Modal xác nhận trên toàn bộ form
+    │   ├── Giai đoạn 2
+    │   │   ├── Trùng SĐT/email trả 409
+    │   │   ├── OTP: hết hạn 10 phút, dùng một lần, sai 5 lần khóa
+    │   │   └── Upload avatar/ảnh sản phẩm
+    │   ├── Giai đoạn 3
+    │   │   ├── Field động theo loại kho
+    │   │   ├── Cột hạn sử dụng có điều kiện
+    │   │   └── Ngày bán hàng
+    │   ├── Giai đoạn 4
+    │   │   ├── Email 8h sáng đúng người
+    │   │   ├── Gộp cảnh báo
+    │   │   └── Không gửi trùng trong ngày
+    │   ├── Giai đoạn 5
+    │   │   └── 3 trang chủ kho: chỉ thấy dữ liệu owner_id của mình
+    │   ├── Giai đoạn 6
+    │   │   ├── Kho chưa có đơn vẫn hiện doanh thu 0
+    │   │   └── Xếp hạng công ty đúng
+    │   ├── Giai đoạn 7
+    │   │   └── Báo cáo VND không lệch khi tỷ giá đổi
+    │   ├── Kiểm thử phân quyền chéo Admin/Thủ kho
+    │   └── Kiểm tra responsive UI/UX
+    │
+    ├── SCRUM MASTER & QUẢN TRỊ DỰ ÁN
+    │   ├── Cập nhật Trello/Jira theo 7 giai đoạn, gắn task v.3 vào sprint
+    │   ├── Daily standup theo dõi blocker Tân–Nguyên–Linh
+    │   └── Ưu tiên: Giai đoạn 1 xong trước khi làm giai đoạn 2
+    │
+    ├── TÀI LIỆU
+    │   └── Cập nhật SRS theo thay đổi v.3 (schema mới, API mới)
+    │
+    └── PROFILE MODULE (giữ từ v.2)
+        ├── wareflow-132 [Epic] Hồ sơ cá nhân
+        ├── wareflow-134 [FE] Profile UI & đổi mật khẩu
+        └── Tích hợp avatar_url vào trang profile (phối hợp Tân)
